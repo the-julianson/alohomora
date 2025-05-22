@@ -1,5 +1,4 @@
 # FastAPI TDD Docker Project
-![Continuous Integration and Delivery](https://github.com/the-julianson/fastapi-tdd-docker/workflows/Continuous%20Integration%20and%20Delivery/
 badge.svg?branch=main)
 
 A template for Test-Driven Development (TDD) with FastAPI, Docker, and modern Python tooling.

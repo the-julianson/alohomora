@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/summarizer
+  IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/alohomora
 
 jobs:
 
@@ -82,7 +82,7 @@ jobs:
         run: |
           docker run \
             -d \
-            --name fastapi-tdd \
+            --name alohomora \
             -e PORT=8765 \
             -e ENVIRONMENT=dev \
             -e DATABASE_URL=sqlite://sqlite.db \
@@ -90,23 +90,23 @@ jobs:
             -p 5003:8765 \
             ${{ env.IMAGE }}-final:latest
       - name: Install requirements
-        run: docker exec fastapi-tdd pip install black==25.1.0 flake8==7.2.0 isort==6.0.1 pytest==8.3.5
+        run: docker exec alohomora pip install black==25.1.0 flake8==7.2.0 isort==6.0.1 pytest==8.3.5
       - name: Pytest
-        run: docker exec fastapi-tdd python -m pytest .
+        run: docker exec alohomora python -m pytest .
       - name: Flake8
-        run: docker exec fastapi-tdd python -m flake8 .
+        run: docker exec alohomora python -m flake8 .
       - name: Black
-        run: docker exec fastapi-tdd python -m black . --check
+        run: docker exec alohomora python -m black . --check
       - name: isort
-        run: docker exec fastapi-tdd python -m isort . --check-only
+        run: docker exec alohomora python -m isort . --check-only
 
   deploy:
     name: Deploy to Heroku
     runs-on: ubuntu-latest
     needs: [build, test]
     env:
-      HEROKU_APP_NAME: ${{ secrets.HEROKU_FASTAPI_TDD_APP_NAME }}
-      HEROKU_REGISTRY_IMAGE: registry.heroku.com/${HEROKU_APP_NAME}/summarizer
+      HEROKU_APP_NAME: alohomora
+      HEROKU_REGISTRY_IMAGE: registry.heroku.com/${HEROKU_APP_NAME}/web
     steps:
       - name: Checkout
         uses: actions/checkout@v3

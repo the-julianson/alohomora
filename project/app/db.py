@@ -16,7 +16,7 @@ def get_db_url() -> str:
     db_url = os.environ.get("DATABASE_URL", "")
     if not db_url:
         return db_url
-    
+
     # Parse the URL
     parsed = urlparse(db_url)
     # Convert postgresql:// to postgres://

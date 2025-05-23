@@ -90,15 +90,13 @@ jobs:
             -p 5003:8765 \
             ${{ env.IMAGE }}-final:latest
       - name: Install requirements
-        run: docker exec alohomora pip install black==25.1.0 flake8==7.2.0 isort==6.0.1 pytest==8.3.5
+        run: docker exec alohomora pip install ruff==0.3.4 pytest==8.3.5
       - name: Pytest
         run: docker exec alohomora python -m pytest .
-      - name: Flake8
-        run: docker exec alohomora python -m flake8 .
-      - name: Black
-        run: docker exec alohomora python -m black . --check
-      - name: isort
-        run: docker exec alohomora python -m isort . --check-only
+      - name: Ruff check
+        run: docker exec alohomora ruff check .
+      - name: Ruff format
+        run: docker exec alohomora ruff format . --check
 
   deploy:
     name: Deploy to Heroku

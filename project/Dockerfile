@@ -22,6 +22,9 @@ RUN pip install -r requirements-dev.txt
 # add app
 COPY . .
 
+# run ruff checks
+RUN ruff check .
+
 # add entrypoint.sh
 COPY ./entrypoint.sh .
 RUN chmod +x /usr/src/app/entrypoint.sh

@@ -62,7 +62,7 @@ While the assignment suggests a Layered Architecture, I've chosen to implement C
 
 2. **Repository pattern**
    - Invert the model dependency on orm, have the orm depend ("knows about") on the model 
-   - also test
+   - Write tests
 
 3. **Application Layer**
    - Implement use cases

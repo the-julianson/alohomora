@@ -1,7 +1,7 @@
 from typing import List, Optional, Protocol
 from uuid import UUID
 
-from .domain.entities import Borrower, Investment, Investor, Loan
+from app.models import Borrower, Investment, Investor, Loan
 
 
 class LoanRepository(Protocol):

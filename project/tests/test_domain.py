@@ -2,14 +2,14 @@ from decimal import Decimal
 
 import pytest
 
-from app.entities import (
+from app.models import (
     Borrower,
-    InvalidInvestmentAmount,
+    InvalidInvestmentAmountError,
     Investment,
     InvestmentStatus,
     Investor,
     Loan,
-    LoanAlreadyFunded,
+    LoanAlreadyFundedError,
     LoanStatus,
     Repayment,
 )
@@ -113,7 +113,7 @@ def test_loan_cannot_accept_investment_when_already_funded():
     )
     loan.accept_investment(investment)
 
-    with pytest.raises(LoanAlreadyFunded):
+    with pytest.raises(LoanAlreadyFundedError):
         loan.accept_investment(investment)
 
 
@@ -136,7 +136,7 @@ def test_investment_validation():
         investor=investor, loan=loan, amount=Decimal("3000.00")
     )
 
-    with pytest.raises(InvalidInvestmentAmount):
+    with pytest.raises(InvalidInvestmentAmountError):
         investment.validate_amount()
 
 

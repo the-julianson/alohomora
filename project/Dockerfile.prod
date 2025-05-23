@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.13.3-slim-bookworm as builder
+FROM python:3.11-slim as builder
 
 # install system dependencies
 RUN apt-get update \
@@ -34,7 +34,7 @@ RUN ruff format . --check
 #########
 
 # pull official base image
-FROM python:3.13.3-slim-bookworm
+FROM python:3.11-slim
 
 # create directory for the app user
 RUN mkdir -p /home/app

@@ -1,4 +1,3 @@
-
 from sqlalchemy import (
     Column,
     Date,
@@ -10,19 +9,21 @@ from sqlalchemy import (
     String,
     Table,
 )
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy.orm import registry, relationship
 
-from .domain.entities import (
+from .models import (
     Borrower,
     Investment,
     InvestmentStatus,
     Investor,
     Loan,
     LoanStatus,
+    Repayment,
 )
 
 
 metadata = MetaData()
+mapper_registry = registry()
 
 borrowers = Table(
     "borrowers",
@@ -76,36 +77,48 @@ repayments = Table(
 
 
 def start_mappers():
-    borrower_mapper = mapper(Borrower, borrowers)
-    investor_mapper = mapper(Investor, investors)
+    mapper_registry.dispose()
 
-    loan_mapper = mapper(
+    mapper_registry.map_imperatively(
+        Borrower,
+        borrowers,
+        properties={
+            "loans": relationship(Loan, back_populates="borrower")
+        }
+    )
+
+    mapper_registry.map_imperatively(
+        Investor,
+        investors,
+        properties={
+            "investments": relationship(Investment, back_populates="investor")
+        }
+    )
+
+    mapper_registry.map_imperatively(
         Loan,
         loans,
         properties={
-            "borrower": relationship(borrower_mapper),
-            "investment": relationship(
-                "Investment",
-                uselist=False,
-                back_populates="loan"
-            )
+            "borrower": relationship(Borrower, back_populates="loans"),
+            "investment": relationship(Investment, uselist=False, back_populates="loan")
         }
     )
 
-    investment_mapper = mapper(
+    mapper_registry.map_imperatively(
         Investment,
         investments,
         properties={
-            "investor": relationship(investor_mapper),
-            "loan": relationship(loan_mapper, back_populates="investment"),
-            "repayments": relationship("Repayment", back_populates="investment")
+            "investor": relationship(Investor, back_populates="investments"),
+            "loan": relationship(Loan, back_populates="investment"),
+            "repayments": relationship(Repayment, back_populates="investment")
         }
     )
 
-    mapper(
-        "Repayment",
+    # ← use the class Repayment here, not a string
+    mapper_registry.map_imperatively(
+        Repayment,
         repayments,
         properties={
-            "investment": relationship(investment_mapper, back_populates="repayments")
+            "investment": relationship(Investment, back_populates="repayments")
         }
     )

@@ -33,7 +33,7 @@ class LoanAlreadyFundedError(Exception):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass
 class Borrower:
     name: str
     email: str

@@ -1,13 +1,13 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
         args: [--line-length=88]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.1
     hooks:
       - id: isort
         language_version: python3
@@ -25,6 +25,6 @@ repos:
           - flake8-simplify
         args: [
           "--max-line-length=88",
-          "--extend-ignore=E203,D100,D101,D102,D103,D104,D10,B008",
+          "--extend-ignore=E203,D100,D101,D102,D103,D104,D105,B008",
           "--per-file-ignores=__init__.py:F401"
         ]

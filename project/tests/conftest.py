@@ -1,6 +1,7 @@
 # project/tests/conftest.py
 
 
+import logging
 import os
 
 import pytest
@@ -11,6 +12,10 @@ from starlette.testclient import TestClient
 from app.config import Settings, get_settings
 from app.main import create_application
 from app.orm import metadata, start_mappers
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def get_settings_override():

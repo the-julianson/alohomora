@@ -1,10 +1,14 @@
 # project/app/main.py
 
 
+import logging
+
 from fastapi import FastAPI
 
 from app.api import ping
-from app.db import init_db
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 def create_application() -> FastAPI:
@@ -15,5 +19,3 @@ def create_application() -> FastAPI:
 
 
 app = create_application()
-
-init_db(app)

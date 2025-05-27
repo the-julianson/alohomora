@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.13.3-slim-bookworm as builder
+FROM python:3.11-slim as builder
 
 # install system dependencies
 RUN apt-get update \
@@ -24,10 +24,9 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requir
 
 # lint
 COPY . /usr/src/app/
-RUN pip install black==25.1.0 flake8==7.2.0 isort==6.0.1
-RUN flake8 .
-RUN black --exclude=migrations . --check
-RUN isort . --check-only
+RUN pip install ruff==0.3.4
+RUN ruff check .
+RUN ruff format . --check
 
 
 #########
@@ -35,7 +34,7 @@ RUN isort . --check-only
 #########
 
 # pull official base image
-FROM python:3.13.3-slim-bookworm
+FROM python:3.11-slim
 
 # create directory for the app user
 RUN mkdir -p /home/app

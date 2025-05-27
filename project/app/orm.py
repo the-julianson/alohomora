@@ -1,6 +1,7 @@
 from sqlalchemy import (
     Column,
     Date,
+    DateTime,
     Enum,
     ForeignKey,
     Integer,
@@ -8,6 +9,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Table,
+    func,
 )
 from sqlalchemy.orm import registry, relationship
 
@@ -52,7 +54,7 @@ loans = Table(
     Column("purpose", String(255), nullable=False),
     Column("term_months", Integer, nullable=False),
     Column("status", Enum(LoanStatus), nullable=False),
-    Column("created_at", Date, nullable=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
 )
 
 investments = Table(
@@ -63,7 +65,7 @@ investments = Table(
     Column("loan_id", ForeignKey("loans.id"), nullable=False),
     Column("amount", Numeric(10, 2), nullable=False),
     Column("status", Enum(InvestmentStatus), nullable=False),
-    Column("created_at", Date, nullable=False),
+    Column("created_at", DateTime, nullable=False, server_default=func.now()),
 )
 
 repayments = Table(
@@ -72,7 +74,7 @@ repayments = Table(
     Column("id", String(36), primary_key=True),  # UUID as string
     Column("investment_id", ForeignKey("investments.id"), nullable=False),
     Column("amount", Numeric(10, 2), nullable=False),
-    Column("created_at", Date, nullable=False),
+    Column("created_at", Date, nullable=False, server_default=func.now()),
 )
 
 

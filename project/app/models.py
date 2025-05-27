@@ -52,7 +52,7 @@ class Loan:
     term_months: int
     id: UUID = field(default_factory=lambda: str(uuid4()))
     status: LoanStatus = LoanStatus.ACTIVE
-    created_at: datetime = datetime.now()
+    created_at: Optional[datetime] = None
     investment: Optional["Investment"] = None
 
     def can_accept_investment(self, amount: Decimal) -> bool:
@@ -104,7 +104,7 @@ class Investment:
     loan: Loan
     amount: Decimal
     status: InvestmentStatus = InvestmentStatus.PENDING_APPROVAL
-    created_at: datetime = datetime.now()
+    created_at: Optional[datetime] = None
     repayments: list["Repayment"] = field(default_factory=list)
     id: UUID = field(default_factory=lambda: str(uuid4()))
 

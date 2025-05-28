@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app import models, repository, services
 from app.db import get_db_session
+from app.models import InsufficientCreditScoreError
 
 
 router = APIRouter()
@@ -45,6 +46,8 @@ def apply(
 
     try:
         loan_id = services.apply_for_loan(loan_object, loan_repo, session)
+    except InsufficientCreditScoreError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

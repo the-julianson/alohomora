@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.models import Loan, LoanStatus
+from app.models import InsufficientCreditScoreError, Loan, LoanStatus
 from app.repository import SqlAlchemyLoanRepository
 
 
@@ -19,6 +19,12 @@ def apply_for_loan(
     - Otherwise, allow the loan
     """
     # Get all loan counts in a single query
+    # CHECK SCORING OF BORROWER
+    if not loan_object.borrower.can_create_loan():
+        raise InsufficientCreditScoreError("""Borrower has insufficient credit score
+        (minimum 600 required)""")
+
+    # Get all loan counts for the borrower
     loan_counts = loan_repo.get_loan_counts_by_status(loan_object.borrower.id)
 
     # Check for defaulted loans

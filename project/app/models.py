@@ -33,6 +33,10 @@ class LoanAlreadyFundedError(Exception):
     pass
 
 
+class InsufficientCreditScoreError(Exception):
+    pass
+
+
 @dataclass
 class Borrower:
     name: str

@@ -61,27 +61,20 @@ class Loan:
     id: UUID = field(default_factory=lambda: str(uuid4()))
     status: LoanStatus = LoanStatus.ACTIVE
     created_at: Optional[datetime] = None
-    investment: Optional["Investment"] = None
 
     def can_accept_investment(self, amount: Decimal) -> bool:
         return (
             self.status == LoanStatus.ACTIVE
-            and self.investment is None
             and amount == self.amount
         )
 
     def accept_investment(self, investment: "Investment") -> None:
         if not self.can_accept_investment(investment.amount):
             raise LoanAlreadyFundedError(f"Loan {self.id} cannot accept investment")
-        self.investment = investment
         self.status = LoanStatus.FUNDED
 
     def reject_investment(self) -> None:
-        if (
-            self.investment
-            and self.investment.status == InvestmentStatus.PENDING_APPROVAL
-        ):
-            self.investment = None
+        if self.status == LoanStatus.FUNDED:
             self.status = LoanStatus.ACTIVE
 
 

@@ -163,7 +163,6 @@ def test_investment_approval():
 
     assert investment.status == InvestmentStatus.ACTIVE
     assert loan.status == LoanStatus.FUNDED
-    assert loan.investment == investment
 
 
 def test_investment_rejection():
@@ -195,7 +194,6 @@ def test_investment_rejection():
 
     assert investment.status == InvestmentStatus.REJECTED
     assert loan.status == LoanStatus.ACTIVE
-    assert loan.investment is None
     assert investor.available_funds == Decimal("10000.00")
 
 

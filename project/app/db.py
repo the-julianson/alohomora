@@ -2,33 +2,16 @@
 
 
 import logging
-import os
-from urllib.parse import urlparse, urlunparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
+from .config import get_db_url
 from .orm import metadata
 
 
 log = logging.getLogger("uvicorn")
-
-
-def get_db_url() -> str:
-    db_url = os.environ.get("DATABASE_URL", "")
-    if not db_url:
-        log.error("No DATABASE_URL found in environment")
-        return db_url
-
-    # Parse the URL
-    parsed = urlparse(db_url)
-    log.info(f"Database URL scheme: {parsed.scheme}")
-    log.info(f"Database URL netloc: {parsed.netloc}")
-    log.info(f"Database URL path: {parsed.path}")
-
-    # Keep postgresql:// as is, SQLAlchemy knows how to handle it
-    return urlunparse(parsed)
 
 
 def init_db(app: FastAPI) -> None:
@@ -41,14 +24,11 @@ def init_db(app: FastAPI) -> None:
     app.state.db_session = session_local
 
 
-def generate_schema() -> None:
-    log.info("Initializing SQLAlchemy...")
-    db_url = get_db_url()
-    log.info(f"Creating engine with URL: {db_url}")
-    engine = create_engine(db_url)
-    log.info("Generating database schema via SQLAlchemy...")
-    metadata.create_all(engine)
+def get_db_session(request: Request) -> Session:
+    session_maker = request.app.state.db_session
+    session = session_maker()
+    try:
+        yield session
+    finally:
+        session.close()
 
-
-if __name__ == "__main__":
-    generate_schema()

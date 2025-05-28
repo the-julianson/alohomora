@@ -43,6 +43,14 @@ class Borrower:
     def can_create_loan(self) -> bool:
         return self.credit_score >= 600
 
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "email": self.email,
+            "credit_score": self.credit_score
+        }
+
 
 @dataclass
 class Loan:

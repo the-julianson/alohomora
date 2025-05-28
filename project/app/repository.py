@@ -1,10 +1,10 @@
-from typing import List, Optional, Protocol
+from typing import Dict, List, Optional, Protocol
 from uuid import UUID
 
-from sqlalchemy import insert
+from sqlalchemy import func, insert, select
 from sqlalchemy.orm import Session
 
-from app.models import Borrower, Investment, Investor, Loan
+from app.models import Borrower, Investment, Investor, Loan, LoanStatus
 from app.orm import investments, loans
 
 
@@ -16,6 +16,9 @@ class LoanRepository(Protocol):
         ...
 
     def list(self) -> List[Loan]:
+        ...
+
+    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]:
         ...
 
 
@@ -60,6 +63,37 @@ class SqlAlchemyLoanRepository:
 
     def get(self, loan_id: UUID) -> Optional[Loan]:
         return self.session.query(Loan).filter_by(id=loan_id).one_or_none()
+
+    def list(
+        self,
+        borrower_id: Optional[UUID] = None,
+        status: Optional[LoanStatus] = None,
+    ) -> List[Loan]:
+        """
+        List loans with optional filters.
+        Used to check borrower's loan history and status.
+        """
+        query = select(Loan)
+
+        if borrower_id is not None:
+            query = query.where(Loan.borrower_id == borrower_id)
+        if status is not None:
+            query = query.where(Loan.status == status)
+        return self.session.execute(query).scalars().all()
+
+    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]:
+        """
+        Get counts of loans by status for a borrower in a single query.
+        Returns a dictionary mapping status to count.
+        """
+        query = (
+            select(Loan.status, func.count(Loan.id).label("count"))
+            .where(Loan.borrower_id == borrower_id)
+            .group_by(Loan.status)
+        )
+        result = self.session.execute(query).all()
+        # Convert result to dictionary, defaulting to 0 for missing statuses
+        return dict(result)
 
 
 class SqlAlchemyBorrowerRepository:

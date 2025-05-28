@@ -1,5 +1,4 @@
 # FastAPI TDD Docker Project
-badge.svg?branch=main)
 
 A template for Test-Driven Development (TDD) with FastAPI, Docker, and modern Python tooling.
 
@@ -16,14 +15,6 @@ docker compose up -d
 ```
 
 ### Database Migrations
-
-```bash
-# Apply migrations
-docker compose exec web aerich upgrade
-
-# (Optional) Apply latest changes to the database without migrations
-# docker compose exec web python app/db.py
-```
 
 ### Testing
 
@@ -62,16 +53,8 @@ docker compose exec web python -m pytest --cov="."
 ### Linting & Formatting
 
 ```bash
-# Lint with flake8
-docker compose exec web flake8 .
 
-# Check code formatting with Black and isort
-docker compose exec web black . --check
-docker compose exec web isort . --check-only
-
-# Auto-format code with Black and isort
-docker compose exec web black .
-docker compose exec web isort .
+docker compose exec web ruff . --check
 ```
 
 ### Other Useful Commands
@@ -106,10 +89,9 @@ docker compose exec web-db psql -U postgres
 ## 🛠️ Tooling
 
 - **FastAPI** for the web API
-- **Tortoise ORM** for async database access
-- **Aerich** for migrations
+- **SQLAlchemy ORM** for async database access
 - **Pytest** for testing
-- **Black, isort, flake8** for code quality
+- **Ruff** for code quality
 - **Docker Compose** for orchestration
 
 ---

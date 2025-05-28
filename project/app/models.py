@@ -52,7 +52,7 @@ class Borrower:
             "id": str(self.id),
             "name": self.name,
             "email": self.email,
-            "credit_score": self.credit_score
+            "credit_score": self.credit_score,
         }
 
 
@@ -67,10 +67,7 @@ class Loan:
     created_at: Optional[datetime] = None
 
     def can_accept_investment(self, amount: Decimal) -> bool:
-        return (
-            self.status == LoanStatus.ACTIVE
-            and amount == self.amount
-        )
+        return self.status == LoanStatus.ACTIVE and amount == self.amount
 
     def accept_investment(self, investment: "Investment") -> None:
         if not self.can_accept_investment(investment.amount):
@@ -147,6 +144,4 @@ class Repayment:
 
     def validate_amount(self) -> None:
         if self.amount > self.investment.remaining_amount:
-            raise ValueError(
-                "Repayment amount exceeds remaining investment amount"
-            )
+            raise ValueError("Repayment amount exceeds remaining investment amount")

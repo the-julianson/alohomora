@@ -42,7 +42,7 @@ class LoanApplicationError(Exception):
 def create_borrower(
     prospect_borrower: CreateBorrowerDTO,
     borrower_repo: SqlAlchemyBorrowerRepository,
-    session: Session
+    session: Session,
 ) -> tuple[str, int]:
     """
     Create a new borrower with calculated credit score.
@@ -52,13 +52,13 @@ def create_borrower(
     credit_score = calculate_credit_score(
         income=prospect_borrower.income,
         employment_years=prospect_borrower.employment_years,
-        has_previous_loans=prospect_borrower.has_previous_loans
+        has_previous_loans=prospect_borrower.has_previous_loans,
     )
 
     borrower = Borrower(
         name=prospect_borrower.name,
         email=prospect_borrower.email,
-        credit_score=credit_score
+        credit_score=credit_score,
     )
     borrower_repo.add(borrower)
     session.commit()
@@ -67,7 +67,7 @@ def create_borrower(
 
 def apply_for_loan(
     loan_object: Loan, loan_repo: SqlAlchemyLoanRepository, session: Session
-    ) -> str:
+) -> str:
     """
     Apply for a new loan with the following rules:
     - If borrower has 2 or more FUNDED or REPAYING loans, reject
@@ -90,9 +90,8 @@ def apply_for_loan(
         Borrower has defaulted loans""")
 
     # Check for funded/repaying loans
-    active_loans = (
-        loan_counts.get(LoanStatus.FUNDED, 0) +
-        loan_counts.get(LoanStatus.REPAYING, 0)
+    active_loans = loan_counts.get(LoanStatus.FUNDED, 0) + loan_counts.get(
+        LoanStatus.REPAYING, 0
     )
     if active_loans >= 2:
         raise LoanApplicationError("""Cannot apply for loan:

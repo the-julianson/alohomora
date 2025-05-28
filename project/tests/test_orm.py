@@ -1,4 +1,3 @@
-
 import logging
 from decimal import Decimal
 from uuid import uuid4
@@ -17,18 +16,22 @@ from app.models import (
 
 logger = logging.getLogger(__name__)
 
+
 def test_borrower_mapper_can_save_borrower(session):
     # Using raw SQL
     borrower_id = str(uuid4())
     session.execute(
-        text("INSERT INTO borrowers (id, name, email, credit_score) VALUES (:id, :name, :email, :credit_score)"),  #  noqa E501
+        text(
+            """INSERT INTO borrowers
+            (id, name, email, credit_score)
+            VALUES (:id, :name, :email, :credit_score)"""
+        ),
         {
             "id": borrower_id,
             "name": "John Doe",
             "email": "john@example.com",
-            "credit_score": 700
-        }
-
+            "credit_score": 700,
+        },
     )
     session.commit()
 
@@ -59,9 +62,9 @@ def test_loan_mapper_can_save_loan(session):
     session.commit()
 
     # Verify using raw SQL
-    rows = list(session.execute(
-        text("SELECT amount, purpose, term_months, status FROM loans")
-    ))
+    rows = list(
+        session.execute(text("SELECT amount, purpose, term_months, status FROM loans"))
+    )
     amount, purpose, term_months, status = rows[0]
     assert amount == Decimal("1000.00")
     assert purpose == "Home improvement"
@@ -78,34 +81,24 @@ def test_loan_mapper_can_save_loan(session):
 
 
 def test_investment_mapper_can_save_investment(session):
-    borrower = Borrower(
-        name="John Doe",
-        email="john@example.com",
-        credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     session.add(borrower)
 
     loan = Loan(
         borrower=borrower,
         amount=Decimal("1000.00"),
         purpose="Home improvement",
-        term_months=12
+        term_months=12,
     )
     session.add(loan)
 
     investor = Investor(
-        name="Jane Smith",
-        email="jane@example.com",
-        available_funds=Decimal("5000.00")
+        name="Jane Smith", email="jane@example.com", available_funds=Decimal("5000.00")
     )
     session.add(investor)
     session.commit()
 
-    investment = Investment(
-        investor=investor,
-        loan=loan,
-        amount=Decimal("500.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("500.00"))
     session.add(investment)
     session.commit()
 
@@ -114,4 +107,3 @@ def test_investment_mapper_can_save_investment(session):
     assert saved_investment.status == InvestmentStatus.PENDING_APPROVAL
     assert saved_investment.investor.name == "Jane Smith"
     assert saved_investment.loan.purpose == "Home improvement"
-

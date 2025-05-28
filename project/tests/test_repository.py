@@ -13,16 +13,16 @@ def test_repository_can_save_a_loan(session):
     borrower_repo.add(borrower)
     session.commit()
 
-    borrower_rows = list(session.execute(
-        text(
-            """
+    borrower_rows = list(
+        session.execute(
+            text(
+                """
             SELECT * FROM borrowers
             """
+            )
         )
-    ))
-    assert borrower_rows == [
-        (borrower.id, "John Doe", "john@example.com", 700)
-    ]
+    )
+    assert borrower_rows == [(borrower.id, "John Doe", "john@example.com", 700)]
 
     loan = models.Loan(
         borrower=borrower,
@@ -34,9 +34,11 @@ def test_repository_can_save_a_loan(session):
     repo.add(loan)
     session.commit()
 
-    rows = list(session.execute(
-        text("SELECT borrower_id, amount, purpose, term_months FROM loans")
-    ))
+    rows = list(
+        session.execute(
+            text("SELECT borrower_id, amount, purpose, term_months FROM loans")
+        )
+    )
 
     borrower_id, amount, purpose, term_months = rows[0]
 
@@ -51,7 +53,7 @@ def test_repository_can_save_an_investment(session):
     investor = models.Investor(
         name="Warren Buffet",
         email="warren@example.com",
-        available_funds=Decimal("1500")
+        available_funds=Decimal("1500"),
     )
     investor_repo = repository.SqlAlchemyInvestorRepository(session)
     investor_repo.add(investor)
@@ -73,7 +75,6 @@ def test_repository_can_save_an_investment(session):
     session.commit()
     assert borrower_from_db == borrower
 
-
     # Create a Loan, assign the borrow to it and commit
     loan = models.Loan(
         borrower=borrower,
@@ -90,11 +91,7 @@ def test_repository_can_save_an_investment(session):
     assert loan_from_db.amount == loan.amount
 
     # Create an Investment, assign the investor and loan to it and commit
-    investment = models.Investment(
-        investor=investor,
-        loan=loan,
-        amount=loan.amount
-    )
+    investment = models.Investment(investor=investor, loan=loan, amount=loan.amount)
     investment_repo = repository.SqlAlchemyInvestmentRepository(session)
     investment_repo.add(investment)
     session.commit()
@@ -105,9 +102,3 @@ def test_repository_can_save_an_investment(session):
     assert investment_from_db.loan.id == loan.id
     assert investment_from_db.amount == investment.amount
     assert investment_from_db.status == investment.status
-
-
-
-
-
-

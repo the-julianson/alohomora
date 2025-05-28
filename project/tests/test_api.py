@@ -32,9 +32,7 @@ def test_apply_for_loan_end_to_end(add_borrower):
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
     try:
-        response = requests.post(
-            f"{url}/loans/apply", json=data
-        )
+        response = requests.post(f"{url}/loans/apply", json=data)
         logger.info(f"Response status: {response.status_code}")
         logger.info(f"Response body: {response.text}")
     except requests.exceptions.RequestException as e:
@@ -53,16 +51,14 @@ def test_create_borrower_end_to_end():
         "email": random_email(),
         "income": 150000,
         "employment_years": 6,
-        "has_previous_loans": False
+        "has_previous_loans": False,
     }
 
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(
-        f"{url}/borrowers", json=data
-    )
+    response = requests.post(f"{url}/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -77,22 +73,19 @@ def test_create_borrower_end_to_end():
 
 
 def test_create_borrower_with_high_risk_profile():
-
     data = {
         "name": "John Doe",
         "email": random_email(),
         "income": 15000,
         "employment_years": 1,
-        "has_previous_loans": True
+        "has_previous_loans": True,
     }
 
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(
-        f"{url}/borrowers", json=data
-    )
+    response = requests.post(f"{url}/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -121,9 +114,7 @@ def test_apply_for_loan_end_to_end_with_bad_credit(add_borrower):
 
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
-    response = requests.post(
-        f"{url}/loans/apply", json=data
-    )
+    response = requests.post(f"{url}/loans/apply", json=data)
     assert response.status_code == 400
     error_detail = response.json()["detail"]
     assert "insufficient credit score" in error_detail.lower()

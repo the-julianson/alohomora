@@ -16,16 +16,12 @@ from app.models import (
 
 
 def test_borrower_can_create_loan_with_good_credit():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     assert borrower.can_create_loan() is True
 
 
 def test_borrower_cannot_create_loan_with_bad_credit():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=500
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=500)
     assert borrower.can_create_loan() is False
 
 
@@ -68,9 +64,7 @@ def test_investor_funds_are_increased_when_refunded():
 
 
 def test_loan_can_accept_investment():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -81,9 +75,7 @@ def test_loan_can_accept_investment():
 
 
 def test_loan_cannot_accept_investment_with_different_amount():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -94,9 +86,7 @@ def test_loan_cannot_accept_investment_with_different_amount():
 
 
 def test_loan_cannot_accept_investment_when_already_funded():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -108,9 +98,7 @@ def test_loan_cannot_accept_investment_when_already_funded():
         email="jane@example.com",
         available_funds=Decimal("10000.00"),
     )
-    investment = Investment(
-        investor=investor, loan=loan, amount=Decimal("5000.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("5000.00"))
     loan.accept_investment(investment)
 
     with pytest.raises(LoanAlreadyFundedError):
@@ -118,9 +106,7 @@ def test_loan_cannot_accept_investment_when_already_funded():
 
 
 def test_investment_validation():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -132,18 +118,14 @@ def test_investment_validation():
         email="jane@example.com",
         available_funds=Decimal("10000.00"),
     )
-    investment = Investment(
-        investor=investor, loan=loan, amount=Decimal("3000.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("3000.00"))
 
     with pytest.raises(InvalidInvestmentAmountError):
         investment.validate_amount()
 
 
 def test_investment_approval():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -155,9 +137,7 @@ def test_investment_approval():
         email="jane@example.com",
         available_funds=Decimal("10000.00"),
     )
-    investment = Investment(
-        investor=investor, loan=loan, amount=Decimal("5000.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("5000.00"))
 
     investment.approve()
 
@@ -166,9 +146,7 @@ def test_investment_approval():
 
 
 def test_investment_rejection():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -186,9 +164,7 @@ def test_investment_rejection():
     assert investor.available_funds == Decimal("5000.00")
 
     # Then create the investment
-    investment = Investment(
-        investor=investor, loan=loan, amount=Decimal("5000.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("5000.00"))
 
     investment.reject()
 
@@ -198,9 +174,7 @@ def test_investment_rejection():
 
 
 def test_repayment_validation():
-    borrower = Borrower(
-        name="John Doe", email="john@example.com", credit_score=700
-    )
+    borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     loan = Loan(
         borrower=borrower,
         amount=Decimal("5000.00"),
@@ -212,14 +186,10 @@ def test_repayment_validation():
         email="jane@example.com",
         available_funds=Decimal("10000.00"),
     )
-    investment = Investment(
-        investor=investor, loan=loan, amount=Decimal("5000.00")
-    )
+    investment = Investment(investor=investor, loan=loan, amount=Decimal("5000.00"))
 
     with pytest.raises(
         ValueError,
         match="Repayment amount exceeds remaining investment amount",
     ):
-        Repayment(
-            investment=investment, amount=Decimal("6000.00")
-        ).validate_amount()
+        Repayment(investment=investment, amount=Decimal("6000.00")).validate_amount()

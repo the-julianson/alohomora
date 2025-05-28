@@ -26,9 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_settings_override():
-    return Settings(
-        testing=1, database_url=os.environ.get("DATABASE_TEST_URL")
-    )
+    return Settings(testing=1, database_url=os.environ.get("DATABASE_TEST_URL"))
 
 
 @pytest.fixture(scope="module")
@@ -37,7 +35,6 @@ def test_app():
     app = create_application()
     app.dependency_overrides[get_settings] = get_settings_override
     with TestClient(app) as test_client:
-
         # testing
         yield test_client
 
@@ -57,6 +54,7 @@ def session(in_memory_db):
     yield sessionmaker(bind=in_memory_db)()
     clear_mappers()
 
+
 def wait_for_webapp_to_come_up():
     deadline = time.time() + 10
     url = config.get_api_url()
@@ -67,6 +65,7 @@ def wait_for_webapp_to_come_up():
             time.sleep(0.5)
     pytest.fail("API never came up")
 
+
 def wait_for_postgres_to_come_up(engine):
     deadline = time.time() + 10
     while time.time() < deadline:
@@ -75,6 +74,7 @@ def wait_for_postgres_to_come_up(engine):
         except OperationalError:
             time.sleep(0.5)
     pytest.fail("Postgres never came up")
+
 
 @pytest.fixture(scope="session")
 def postgres_db():
@@ -97,7 +97,7 @@ def add_borrower(postgres_session):
         borrower_id = str(uuid.uuid4())
         postgres_session.execute(
             text(
-            """INSERT INTO borrowers (id, name, email, credit_score)
+                """INSERT INTO borrowers (id, name, email, credit_score)
             VALUES (:id, :name, :email, :credit_score)
             """
             ),
@@ -110,11 +110,9 @@ def add_borrower(postgres_session):
         )
         postgres_session.commit()
         return Borrower(
-            id=borrower_id,
-            name=name,
-            email=email,
-            credit_score=credit_score
+            id=borrower_id, name=name, email=email, credit_score=credit_score
         )
+
     yield __add_borrower
 
 

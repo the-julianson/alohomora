@@ -9,41 +9,31 @@ from app.orm import investments, loans
 
 
 class LoanRepository(Protocol):
-    def add(self, loan: Loan) -> None:
-        ...
+    def add(self, loan: Loan) -> None: ...
 
-    def get(self, loan_id: UUID) -> Optional[Loan]:
-        ...
+    def get(self, loan_id: UUID) -> Optional[Loan]: ...
 
-    def list(self) -> List[Loan]:
-        ...
+    def list(self) -> List[Loan]: ...
 
-    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]:
-        ...
+    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]: ...
 
 
 class BorrowerRepository(Protocol):
-    def add(self, borrower: Borrower) -> None:
-        ...
+    def add(self, borrower: Borrower) -> None: ...
 
-    def get(self, borrower_id: UUID) -> Optional[Borrower]:
-        ...
+    def get(self, borrower_id: UUID) -> Optional[Borrower]: ...
 
 
 class InvestorRepository(Protocol):
-    def add(self, investor: Investor) -> None:
-        ...
+    def add(self, investor: Investor) -> None: ...
 
-    def get(self, investor_id: UUID) -> Optional[Investor]:
-        ...
+    def get(self, investor_id: UUID) -> Optional[Investor]: ...
 
 
 class InvestmentRepository(Protocol):
-    def add(self, investment: Investment) -> None:
-        ...
+    def add(self, investment: Investment) -> None: ...
 
-    def get(self, investment_id: UUID) -> Optional[Investment]:
-        ...
+    def get(self, investment_id: UUID) -> Optional[Investment]: ...
 
 
 class SqlAlchemyLoanRepository:
@@ -52,12 +42,12 @@ class SqlAlchemyLoanRepository:
 
     def add(self, loan: Loan) -> None:
         stmt = insert(loans).values(
-            id = loan.id,
-            borrower_id = loan.borrower.id,
-            amount = loan.amount,
-            purpose = loan.purpose,
-            term_months = loan.term_months,
-            status = loan.status.value,
+            id=loan.id,
+            borrower_id=loan.borrower.id,
+            amount=loan.amount,
+            purpose=loan.purpose,
+            term_months=loan.term_months,
+            status=loan.status.value,
         )
         self.session.execute(stmt)
 
@@ -124,11 +114,11 @@ class SqlAlchemyInvestmentRepository:
 
     def add(self, investment: Investment) -> None:
         stmt = insert(investments).values(
-            id = investment.id,
-            investor_id = investment.investor.id,
-            loan_id = investment.loan.id,
-            amount = investment.amount,
-            status = investment.status.value,
+            id=investment.id,
+            investor_id=investment.investor.id,
+            loan_id=investment.loan.id,
+            amount=investment.amount,
+            status=investment.status.value,
         )
         self.session.execute(stmt)
 

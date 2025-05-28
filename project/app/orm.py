@@ -84,17 +84,13 @@ def start_mappers():
     mapper_registry.map_imperatively(
         Borrower,
         borrowers,
-        properties={
-            "loans": relationship(Loan, back_populates="borrower")
-        }
+        properties={"loans": relationship(Loan, back_populates="borrower")},
     )
 
     mapper_registry.map_imperatively(
         Investor,
         investors,
-        properties={
-            "investments": relationship(Investment, back_populates="investor")
-        }
+        properties={"investments": relationship(Investment, back_populates="investor")},
     )
 
     mapper_registry.map_imperatively(
@@ -102,8 +98,10 @@ def start_mappers():
         loans,
         properties={
             "borrower": relationship(Borrower, back_populates="loans"),
-            "investment": relationship(Investment, uselist=False, back_populates="loan")
-        }
+            "investment": relationship(
+                Investment, uselist=False, back_populates="loan"
+            ),
+        },
     )
 
     mapper_registry.map_imperatively(
@@ -112,8 +110,8 @@ def start_mappers():
         properties={
             "investor": relationship(Investor, back_populates="investments"),
             "loan": relationship(Loan, back_populates="investment"),
-            "repayments": relationship(Repayment, back_populates="investment")
-        }
+            "repayments": relationship(Repayment, back_populates="investment"),
+        },
     )
 
     # ← use the class Repayment here, not a string
@@ -122,5 +120,5 @@ def start_mappers():
         repayments,
         properties={
             "investment": relationship(Investment, back_populates="repayments")
-        }
+        },
     )

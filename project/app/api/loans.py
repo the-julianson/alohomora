@@ -1,5 +1,6 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app import models, repository, services
@@ -7,26 +8,40 @@ from app.db import get_db_session
 from app.models import InsufficientCreditScoreError
 
 
+logger = logging.getLogger(__name__)
+
+
 router = APIRouter()
 
-
-class BorrowerDTO(BaseModel):
-    id: str
-    name: str
-    email: str
-    credit_score: int
-
-
-class LoanApplicationDTO(BaseModel):
-    borrower: BorrowerDTO
-    amount: int
-    term_months: int
-    purpose: str
+@router.post("/borrowers", status_code=201)
+def create_borrower(
+    payload: services.CreateBorrowerDTO,
+    session: Session = Depends(get_db_session)
+):
+    logger.info(f"Received borrower creation request: {payload}")
+    borrower_repo = repository.SqlAlchemyBorrowerRepository(session)
+    try:
+        logger.info("About to call create_borrower service")
+        borrower_id, credit_score = services.create_borrower(
+            prospect_borrower=payload,
+            borrower_repo=borrower_repo,
+            session=session
+        )
+        logger.info(f"""Successfully created borrower with ID
+        {borrower_id} and credit score {credit_score}""")
+        return {
+            "borrower_id": borrower_id,
+            "credit_score": credit_score,
+            "message": "Borrower created successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error creating borrower: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/loans/apply", status_code=201)
 def apply(
-    payload: LoanApplicationDTO,
+    payload: services.LoanApplicationDTO,
     session: Session = Depends(get_db_session)
     ):
     borrower = models.Borrower(

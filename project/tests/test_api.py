@@ -47,6 +47,64 @@ def test_apply_for_loan_end_to_end(add_borrower):
     assert r["message"] == "Loan applied successfully"
 
 
+def test_create_borrower_end_to_end():
+    data = {
+        "name": "John Doe",
+        "email": random_email(),
+        "income": 150000,
+        "employment_years": 6,
+        "has_previous_loans": False
+    }
+
+    url = config.get_api_url()
+    logger.info(f"Testing API at {url}")
+    logger.info(f"Request data: {data}")
+
+    response = requests.post(
+        f"{url}/borrowers", json=data
+    )
+
+    logger.info(f"Response status: {response.status_code}")
+    logger.info(f"Response body: {response.text}")
+
+    assert response.status_code == 201
+    result = response.json()
+    logger.info(f"Result: {result}")
+    assert "borrower_id" in result
+    assert "credit_score" in result
+    assert result["credit_score"] == 700
+    assert result["message"] == "Borrower created successfully"
+
+
+def test_create_borrower_with_high_risk_profile():
+
+    data = {
+        "name": "John Doe",
+        "email": random_email(),
+        "income": 15000,
+        "employment_years": 1,
+        "has_previous_loans": True
+    }
+
+    url = config.get_api_url()
+    logger.info(f"Testing API at {url}")
+    logger.info(f"Request data: {data}")
+
+    response = requests.post(
+        f"{url}/borrowers", json=data
+    )
+
+    logger.info(f"Response status: {response.status_code}")
+    logger.info(f"Response body: {response.text}")
+
+    assert response.status_code == 201
+    result = response.json()
+    assert "borrower_id" in result
+    assert "credit_score" in result
+    assert result["credit_score"] == 475
+    assert result["message"] == "Borrower created successfully"
+
+
 def test_apply_for_loan_end_to_end_with_bad_credit(add_borrower):
     borrower = add_borrower(
         name="John Doe",

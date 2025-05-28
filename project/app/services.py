@@ -1,11 +1,68 @@
+# app/services.py
+
+import logging
+
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.models import InsufficientCreditScoreError, Loan, LoanStatus
-from app.repository import SqlAlchemyLoanRepository
+from app.helper import calculate_credit_score
+from app.models import Borrower, InsufficientCreditScoreError, Loan, LoanStatus
+from app.repository import SqlAlchemyBorrowerRepository, SqlAlchemyLoanRepository
+
+
+logger = logging.getLogger(__name__)
+
+
+class BorrowerDTO(BaseModel):
+    id: str
+    name: str
+    email: str
+    credit_score: int
+
+
+class CreateBorrowerDTO(BaseModel):
+    name: str
+    email: str
+    income: int
+    employment_years: int
+    has_previous_loans: bool
+
+
+class LoanApplicationDTO(BaseModel):
+    borrower: BorrowerDTO
+    amount: int
+    term_months: int
+    purpose: str
 
 
 class LoanApplicationError(Exception):
     pass
+
+
+def create_borrower(
+    prospect_borrower: CreateBorrowerDTO,
+    borrower_repo: SqlAlchemyBorrowerRepository,
+    session: Session
+) -> tuple[str, int]:
+    """
+    Create a new borrower with calculated credit score.
+    Returns tuple of (borrower_id, credit_score)
+    """
+    logger.info("Starting borrower creation")
+    credit_score = calculate_credit_score(
+        income=prospect_borrower.income,
+        employment_years=prospect_borrower.employment_years,
+        has_previous_loans=prospect_borrower.has_previous_loans
+    )
+
+    borrower = Borrower(
+        name=prospect_borrower.name,
+        email=prospect_borrower.email,
+        credit_score=credit_score
+    )
+    borrower_repo.add(borrower)
+    session.commit()
+    return str(borrower.id), credit_score
 
 
 def apply_for_loan(

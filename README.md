@@ -1,8 +1,41 @@
-# FastAPI TDD Docker Project
-
-A template for Test-Driven Development (TDD) with FastAPI, Docker, and modern Python tooling.
-
 ## 🚀 Quick Start
+
+Challenge Project 
+
+✅ FastAPI framework with proper endpoints and status codes
+✅ Database documentation with Mermaid diagrams
+✅ Integration sequence diagram with Mermaid
+✅ Layered architecture >> Clean Architecture (missing UoW: Unit of Work still)
+✅ Business transformation in service layer ([use cases](BusinessRequirements.md)) 
+✅ Data transformation between API and DB
+✅ Type hints throughout
+✅ ORM usage with SQLAlchemy
+✅ Stateless API ready for concurrent users
+✅ Health check and version endpoints
+
+
+### Make Commands
+A [Makefile](Makefile) is provided with convenient commands for common tasks like:
+
+```bash
+# Run unit tests (excluding API tests)
+make test
+
+# Run all tests including API tests
+make test-e2e
+
+# Run linter
+make lint
+
+# Access database shell
+make db-shell
+
+# View logs
+make logs
+
+# Clean up containers and volumes
+make clean
+```
 
 ### Build and Run
 
@@ -17,7 +50,7 @@ docker compose up -d
 ### Database Migrations
 
 ### Testing
-
+For fined grained testing
 ```bash
 # Run all tests
 docker compose exec web python -m pytest
@@ -37,34 +70,12 @@ docker compose exec web python -m pytest -x
 # Enter PDB after first failure
 docker compose exec web python -m pytest -x --pdb
 
-# Stop after two failures
-docker compose exec web python -m pytest --maxfail=2
-
-# Show local variables in tracebacks
-docker compose exec web python -m pytest -l
-
-# List the 2 slowest tests
-docker compose exec web python -m pytest --durations=2
-
-# Run tests with coverage
-docker compose exec web python -m pytest --cov="."
-```
-
-### Linting & Formatting
-
-```bash
-
-docker compose exec web ruff . --check
-```
 
 ### Other Useful Commands
 
 ```bash
 # Stop the containers
 docker compose stop
-
-# Bring down the containers
-docker compose down
 
 # Force a build (no cache)
 docker compose build --no-cache

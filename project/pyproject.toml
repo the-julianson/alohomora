@@ -1,6 +1,36 @@
+[tool.poetry]
+name = "alohomora"
+version = "0.1.0"
+description = "Loan Management System"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "0.115.12"
+pydantic-settings = "2.8.1"
+uvicorn = "0.34.1"
+asyncpg = "0.30.0"
+httpx = "0.28.1"
+gunicorn = "22.0.0"
+sqlalchemy = {extras = ["asyncio"], version = "2.0.28"}
+psycopg2-binary = "2.9.9"
+requests = "2.32.3"
+pytest-asyncio = "0.24.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "0.3.4"
+pytest = "8.3.5"
+pytest-cov = "6.1.1"
+pre-commit = "3.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.ruff]
-# Same as Black.
 line-length = 88
+target-version = "py311"
 
 [tool.ruff.lint]
 # Enable pycodestyle (`E`), Pyflakes (`F`), and import sorting (`I`) codes
@@ -60,9 +90,3 @@ lines-after-imports = 2
 [tool.ruff.lint.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
-
-[build-system]
-requires = [
-    "poetry-core",
-]
-build-backend = "poetry.core.masonry.api"

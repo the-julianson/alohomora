@@ -32,7 +32,7 @@ def test_apply_for_loan_end_to_end(add_borrower):
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
     try:
-        response = requests.post(f"{url}/loans/apply", json=data)
+        response = requests.post(f"{url}/v1/loans/apply", json=data)
         logger.info(f"Response status: {response.status_code}")
         logger.info(f"Response body: {response.text}")
     except requests.exceptions.RequestException as e:
@@ -58,7 +58,7 @@ def test_create_borrower_end_to_end():
     logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(f"{url}/borrowers", json=data)
+    response = requests.post(f"{url}/v1/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -85,7 +85,7 @@ def test_create_borrower_with_high_risk_profile():
     logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(f"{url}/borrowers", json=data)
+    response = requests.post(f"{url}/v1/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -114,7 +114,7 @@ def test_apply_for_loan_end_to_end_with_bad_credit(add_borrower):
 
     url = config.get_api_url()
     logger.info(f"Testing API at {url}")
-    response = requests.post(f"{url}/loans/apply", json=data)
+    response = requests.post(f"{url}/v1/loans/apply", json=data)
     assert response.status_code == 400
     error_detail = response.json()["detail"]
     assert "insufficient credit score" in error_detail.lower()
@@ -135,7 +135,7 @@ def test_retrieve_borrowers(add_borrower):
     )
 
     url = config.get_api_url()
-    response = requests.get(f"{url}/borrowers")
+    response = requests.get(f"{url}/v1/borrowers")
     assert response.status_code == 200
     result = response.json()
     assert len(result) > 0

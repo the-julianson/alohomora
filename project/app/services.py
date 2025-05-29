@@ -107,3 +107,9 @@ def apply_for_loan(
     loan_repo.add(loan_object)
     session.commit()
     return loan_object.id
+
+
+def get_borrowers(
+    borrower_repo: SqlAlchemyBorrowerRepository, session: Session
+    ) -> list[Borrower]:
+    return borrower_repo.list()

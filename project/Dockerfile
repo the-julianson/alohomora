@@ -1,33 +1,44 @@
-# pull official base image
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    postgresql \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+# Final stage
 FROM python:3.11-slim
 
-# set working directory
 WORKDIR /usr/src/app
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# install system dependencies
+# Install runtime dependencies
 RUN apt-get update \
-  && apt-get -y install netcat-traditional gcc postgresql \
-  && apt-get clean
+    && apt-get install -y --no-install-recommends \
+    netcat-traditional \
+    postgresql \
+    && rm -rf /var/lib/apt/lists/*
 
-# install python dependencies
-RUN pip install --upgrade pip
-COPY ./requirements.txt .
-COPY ./requirements-dev.txt .
-RUN pip install -r requirements-dev.txt
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# add app
+# Copy application code
 COPY . .
 
-# run ruff checks
-RUN ruff check .
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
-# add entrypoint.sh
+# Add entrypoint script
 COPY ./entrypoint.sh .
 RUN chmod +x /usr/src/app/entrypoint.sh
 
-# run entrypoint.sh
+# Run entrypoint script
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

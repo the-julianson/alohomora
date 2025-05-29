@@ -119,3 +119,27 @@ def test_apply_for_loan_end_to_end_with_bad_credit(add_borrower):
     error_detail = response.json()["detail"]
     assert "insufficient credit score" in error_detail.lower()
     assert "minimum 600 required" in error_detail.lower()
+
+
+def test_retrieve_borrowers(add_borrower):
+    add_borrower(
+        name="John Doe",
+        email=random_email(),
+        credit_score=700,
+    )
+
+    add_borrower(
+        name="Jane Doe",
+        email=random_email(),
+        credit_score=800,
+    )
+
+    url = config.get_api_url()
+    response = requests.get(f"{url}/borrowers")
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result) > 0
+    assert result[0]["name"] == "John Doe"
+    assert result[0]["credit_score"] == 700
+    assert result[1]["name"] == "Jane Doe"
+    assert result[1]["credit_score"] == 800

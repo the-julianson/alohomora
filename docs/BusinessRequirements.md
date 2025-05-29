@@ -1,4 +1,4 @@
-# Microloan Platform - Train of Thought
+# Microloan Platform
 
 ## Core Business Logic
 

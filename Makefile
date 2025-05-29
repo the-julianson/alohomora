@@ -9,6 +9,10 @@ help:
 	@echo "  make db-shell   - Access the database shell"
 	@echo "  make down       - Stop and remove containers"
 
+# Run the full stack
+up:
+	docker-compose up -d
+
 # Build and start the application
 build:
 	docker-compose up --build -d
@@ -28,3 +32,6 @@ db-shell:
 # Stop and remove containers
 down:
 	docker-compose down 
+
+logs:
+	docker-compose logs -f

@@ -13,6 +13,10 @@ services:
       - NODE_ENV=development
     depends_on:
       - web
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   web:
     build: ./project
@@ -28,6 +32,10 @@ services:
       - DATABASE_TEST_URL=postgres://postgres:postgres@web-db:5432/web_test
     depends_on:
       - web-db
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   # new
   web-db:
@@ -39,3 +47,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    deploy:
+      resources:
+        limits:
+          memory: 512M

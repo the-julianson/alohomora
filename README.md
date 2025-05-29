@@ -2,16 +2,16 @@
 
 Challenge Project 
 
-✅ FastAPI framework with proper endpoints and status codes
-✅ Database documentation with Mermaid diagrams
-✅ Integration sequence diagram with Mermaid
-✅ Layered architecture >> Clean Architecture (missing UoW: Unit of Work still)
-✅ Business transformation in service layer ([use cases](BusinessRequirements.md)) 
-✅ Data transformation between API and DB
-✅ Type hints throughout
-✅ ORM usage with SQLAlchemy
-✅ Stateless API ready for concurrent users
-✅ Health check and version endpoints
+- #### ✅ FastAPI framework with proper endpoints and status codes
+- #### ✅ Database documentation with Mermaid diagrams
+- #### ✅ Integration sequence diagram with Mermaid
+- #### ✅ Layered architecture >> Clean Architecture (missing UoW: Unit of Work still)
+- #### ✅ Business transformation in service layer ([use cases](BusinessRequirements.md)) 
+- #### ✅ Data transformation between API and DB
+- #### ✅ Type hints throughout
+- #### ✅ ORM usage with SQLAlchemy
+- #### ✅ Stateless API ready for concurrent users
+- #### ✅ Health check and version endpoints
 
 
 ### Make Commands

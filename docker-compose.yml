@@ -51,3 +51,8 @@ services:
       resources:
         limits:
           memory: 512M
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

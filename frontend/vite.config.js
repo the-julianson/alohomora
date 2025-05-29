@@ -6,7 +6,7 @@ export default defineConfig({
       '/api': {
         target: 'http://web:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/api/, '/v1')
       }
     }
   }

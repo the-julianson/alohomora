@@ -76,4 +76,13 @@ poetry.lock
 
 # Frontend
 node_modules/
+.vite/
+dist/
+*.local
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 

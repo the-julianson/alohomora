@@ -11,7 +11,7 @@ from app.models import InsufficientCreditScoreError
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter()
+router = APIRouter(prefix="/v1")
 
 
 @router.post("/borrowers", status_code=201)

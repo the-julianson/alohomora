@@ -23,6 +23,8 @@ class BorrowerRepository(Protocol):
 
     def get(self, borrower_id: UUID) -> Optional[Borrower]: ...
 
+    def list(self) -> List[Loan]: ...
+
 
 class InvestorRepository(Protocol):
     def add(self, investor: Investor) -> None: ...
@@ -95,6 +97,9 @@ class SqlAlchemyBorrowerRepository:
 
     def get(self, borrower_id: UUID) -> Optional[Borrower]:
         return self.session.query(Borrower).filter_by(id=borrower_id).one_or_none()
+
+    def list(self) -> List[Borrower]:
+        return self.session.query(Borrower).all()
 
 
 class SqlAlchemyInvestorRepository:

@@ -84,6 +84,15 @@ def postgres_db():
     return engine
 
 
+@pytest.fixture(autouse=True)
+def clear_database(postgres_db):
+    """Clear all tables before each test."""
+    with postgres_db.connect() as conn:
+        conn.execute(text("""TRUNCATE TABLE
+        borrowers, loans, investors, investments CASCADE"""))
+        conn.commit()
+
+
 @pytest.fixture
 def postgres_session(postgres_db):
     start_mappers()

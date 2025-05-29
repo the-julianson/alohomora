@@ -73,3 +73,7 @@ poetry.lock
 .env.development.local
 .env.test.local
 .env.production.local 
+
+# Frontend
+node_modules/
+

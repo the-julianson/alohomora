@@ -17,7 +17,7 @@ router = APIRouter()
 @router.post("/borrowers", status_code=201)
 def create_borrower(
     payload: services.CreateBorrowerDTO, session: Session = Depends(get_db_session)
-):
+) -> dict:
     logger.info(f"Received borrower creation request: {payload}")
     borrower_repo = repository.SqlAlchemyBorrowerRepository(session)
     try:
@@ -40,7 +40,7 @@ def create_borrower(
 @router.post("/loans/apply", status_code=201)
 def apply(
     payload: services.LoanApplicationDTO, session: Session = Depends(get_db_session)
-):
+) -> dict:
     borrower = models.Borrower(
         id=payload.borrower.id,
         name=payload.borrower.name,
@@ -64,3 +64,14 @@ def apply(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
     return {"loan_id": loan_id, "message": "Loan applied successfully"}
+
+
+@router.get("/borrowers", status_code=200)
+def get_borrowers(session: Session = Depends(get_db_session)) -> list[dict]:
+    borrower_repo = repository.SqlAlchemyBorrowerRepository(session)
+
+    try:
+        borrowers = services.get_borrowers(borrower_repo, session)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return [borrower.to_dict() for borrower in borrowers]

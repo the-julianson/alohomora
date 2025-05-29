@@ -111,5 +111,5 @@ def apply_for_loan(
 
 def get_borrowers(
     borrower_repo: SqlAlchemyBorrowerRepository, session: Session
-    ) -> list[Borrower]:
+) -> list[Borrower]:
     return borrower_repo.list()

@@ -88,8 +88,10 @@ def postgres_db():
 def clear_database(postgres_db):
     """Clear all tables before each test."""
     with postgres_db.connect() as conn:
-        conn.execute(text("""TRUNCATE TABLE
-        borrowers, loans, investors, investments CASCADE"""))
+        conn.execute(
+            text("""TRUNCATE TABLE
+        borrowers, loans, investors, investments CASCADE""")
+        )
         conn.commit()
 
 

@@ -30,9 +30,5 @@ async def version():
         "version": "1.0.0",
         "name": "Alohomora Loan Management System",
         "api_version": "v1",
-        "semantic_version": {
-            "major": 1,
-            "minor": 0,
-            "patch": 0
-        }
+        "semantic_version": {"major": 1, "minor": 0, "patch": 0},
     }

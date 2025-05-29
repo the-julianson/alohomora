@@ -16,7 +16,7 @@ While the assignment suggests a Layered Architecture, I've chosen to implement C
 
 4. **Interface Ownership**: Following the principle that "interfaces should be defined where they are used, not where they are implemented", our domain and application layers will define the interfaces they need, and infrastructure will implement them.
 
-## Core Use Cases
+## Proposed Core Use Cases
 
 ### Loan Management
 1. **Create Loan Request**

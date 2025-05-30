@@ -34,4 +34,4 @@ async def get_async_db_session(request: Request) -> AsyncSession:
     try:
         yield session
     finally:
-        session.close()
+        await session.close()

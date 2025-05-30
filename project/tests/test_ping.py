@@ -1,8 +1,8 @@
 # project/tests/test_ping.py
 
 
-async def test_ping(test_app):
-    response = await test_app.get("/v1/ping")
+async def test_ping(async_client):
+    response = await async_client.get("/v1/ping")
     assert response.status_code == 200
     response_json = response.json()
     assert response_json["environment"] == "dev"
@@ -11,8 +11,8 @@ async def test_ping(test_app):
     assert "web_test" in response_json["database_url"]
 
 
-async def test_version(test_app):
-    response = await test_app.get("/v1/version")
+async def test_version(async_client):
+    response = await async_client.get("/v1/version")
     assert response.status_code == 200
     response_json = response.json()
     assert response_json["version"] == "1.0.0"

@@ -43,10 +43,13 @@ async def app():
 
 # Async fixtures
 @pytest_asyncio.fixture(scope="module")
-async def test_app():
+async def async_client(app):
+    await app.router.startup()
     transport = ASGITransport(app=app)
     async with AsyncClient(base_url="http://test", transport=transport) as ac:
         yield ac
+
+    await app.router.shutdown()
 
 
 @pytest_asyncio.fixture
@@ -69,9 +72,9 @@ async def session(in_memory_db):
     clear_mappers()
 
 
-@pytest_asyncio.fixture(scope="session")
-async def event_loop():
-    """Create an instance of the default event loop for each test case."""
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create a single shared asyncio event loop for all async tests and fixtures.."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -96,7 +99,7 @@ async def prepare_test_db():
 
 
 @pytest_asyncio.fixture(scope="session")
-async def postgres_db(event_loop):
+async def postgres_db():
     engine = create_async_engine(config.get_db_url())
     await wait_for_postgres_to_come_up(engine)
     async with engine.begin() as conn:

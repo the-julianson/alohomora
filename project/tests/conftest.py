@@ -1,18 +1,20 @@
 # project/tests/conftest.py
 
 
+import asyncio
 import logging
 import os
 import time
 import uuid
-from pathlib import Path
 
 import pytest
-import requests
-from sqlalchemy import create_engine, text
+import pytest_asyncio
+from httpx import AsyncClient
+from httpx._transports.asgi import ASGITransport
+from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import clear_mappers, sessionmaker
-from starlette.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import clear_mappers
 
 from app import config
 from app.config import Settings, get_settings
@@ -25,92 +27,115 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+# Regular fixtures (non-async)
 def get_settings_override():
     return Settings(testing=1, database_url=os.environ.get("DATABASE_TEST_URL"))
 
 
-@pytest.fixture(scope="module")
-def test_app():
-    # set up
+@pytest_asyncio.fixture(scope="module")
+async def app():
     app = create_application()
-    app.dependency_overrides[get_settings] = get_settings_override
-    with TestClient(app) as test_client:
-        # testing
-        yield test_client
-
-    # tear down
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        testing=1, database_url=os.environ["DATABASE_TEST_URL"]
+    )
+    return app
 
 
-@pytest.fixture
-def in_memory_db():
-    engine = create_engine("sqlite:///:memory:")
-    metadata.create_all(engine)
-    return engine
+# Async fixtures
+@pytest_asyncio.fixture(scope="module")
+async def test_app():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(base_url="http://test", transport=transport) as ac:
+        yield ac
 
 
-@pytest.fixture
-def session(in_memory_db):
+@pytest_asyncio.fixture
+async def in_memory_db():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+    yield engine
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def session(in_memory_db):
     start_mappers()
-    yield sessionmaker(bind=in_memory_db)()
+    async_session_maker = async_sessionmaker(
+        in_memory_db, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session_maker() as session:
+        yield session
     clear_mappers()
 
 
-def wait_for_webapp_to_come_up():
-    deadline = time.time() + 10
-    url = config.get_api_url()
-    while time.time() < deadline:
-        try:
-            return requests.get(url)
-        except ConnectionError:
-            time.sleep(0.5)
-    pytest.fail("API never came up")
-
-
-def wait_for_postgres_to_come_up(engine):
-    deadline = time.time() + 10
-    while time.time() < deadline:
-        try:
-            return engine.connect()
-        except OperationalError:
-            time.sleep(0.5)
-    pytest.fail("Postgres never came up")
+@pytest_asyncio.fixture(scope="session")
+async def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="session")
-def postgres_db():
-    engine = create_engine(config.get_db_url())
-    wait_for_postgres_to_come_up(engine)
-    metadata.create_all(engine)
-    return engine
+def anyio_backend():
+    return "asyncio"
 
 
-@pytest.fixture(autouse=True)
-def clear_database(postgres_db):
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def prepare_test_db():
+    url = config.get_db_url()
+    engine = create_async_engine(url)
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.drop_all)
+        await conn.run_sync(metadata.create_all)
+    yield
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.drop_all)
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="session")
+async def postgres_db(event_loop):
+    engine = create_async_engine(config.get_db_url())
+    await wait_for_postgres_to_come_up(engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+    yield engine
+    await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def clear_database(postgres_db):
     """Clear all tables before each test."""
-    with postgres_db.connect() as conn:
-        conn.execute(
+    async with postgres_db.begin() as conn:
+        await conn.execute(
             text("""TRUNCATE TABLE
-        borrowers, loans, investors, investments CASCADE""")
+            borrowers, loans, investors, investments CASCADE""")
         )
-        conn.commit()
+        await conn.commit()
 
 
-@pytest.fixture
-def postgres_session(postgres_db):
+@pytest_asyncio.fixture
+async def postgres_session(postgres_db):
     start_mappers()
-    yield sessionmaker(bind=postgres_db)()
+    async_session_maker = async_sessionmaker(
+        postgres_db, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session_maker() as session:
+        yield session
     clear_mappers()
 
 
-@pytest.fixture
-def add_borrower(postgres_session):
-    def __add_borrower(name, email, credit_score):
+@pytest_asyncio.fixture
+async def add_borrower(postgres_session):
+    async def __add_borrower(name, email, credit_score):
         borrower_id = str(uuid.uuid4())
-        postgres_session.execute(
+        await postgres_session.execute(
             text(
                 """INSERT INTO borrowers (id, name, email, credit_score)
-            VALUES (:id, :name, :email, :credit_score)
-            """
+                VALUES (:id, :name, :email, :credit_score)
+                """
             ),
             {
                 "id": borrower_id,
@@ -119,7 +144,7 @@ def add_borrower(postgres_session):
                 "credit_score": credit_score,
             },
         )
-        postgres_session.commit()
+        await postgres_session.commit()
         return Borrower(
             id=borrower_id, name=name, email=email, credit_score=credit_score
         )
@@ -127,8 +152,25 @@ def add_borrower(postgres_session):
     yield __add_borrower
 
 
-@pytest.fixture
-def restart_api():
-    (Path(__file__).parent / "main.py").touch()
-    time.sleep(0.5)
-    wait_for_webapp_to_come_up()
+# Helper functions
+async def wait_for_webapp_to_come_up():
+    deadline = time.time() + 10
+    url = config.get_api_url()
+    while time.time() < deadline:
+        try:
+            return await AsyncClient().get(url)
+        except ConnectionError:
+            await asyncio.sleep(0.5)
+    pytest.fail("API never came up")
+
+
+async def wait_for_postgres_to_come_up(engine):
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        try:
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+                return
+        except OperationalError:
+            await asyncio.sleep(0.5)
+    pytest.fail("Postgres never came up")

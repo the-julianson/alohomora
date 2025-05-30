@@ -2,7 +2,8 @@ import logging
 from decimal import Decimal
 from uuid import uuid4
 
-from sqlalchemy import text
+import pytest
+from sqlalchemy import select, text
 
 from app.models import (
     Borrower,
@@ -17,10 +18,11 @@ from app.models import (
 logger = logging.getLogger(__name__)
 
 
-def test_borrower_mapper_can_save_borrower(session):
+@pytest.mark.asyncio
+async def test_borrower_mapper_can_save_borrower(session):
     # Using raw SQL
     borrower_id = str(uuid4())
-    session.execute(
+    await session.execute(
         text(
             """INSERT INTO borrowers
             (id, name, email, credit_score)
@@ -33,23 +35,26 @@ def test_borrower_mapper_can_save_borrower(session):
             "credit_score": 700,
         },
     )
-    session.commit()
+    await session.commit()
 
-    # Using ORM
-    saved_borrower = session.query(Borrower).first()
+    # Using ORM with modern async syntax
+    stmt = select(Borrower)
+    result = await session.execute(stmt)
+    saved_borrower = result.scalar_one_or_none()
     assert saved_borrower.name == "John Doe"
     assert saved_borrower.email == "john@example.com"
     assert saved_borrower.credit_score == 700
 
 
-def test_loan_mapper_can_save_loan(session):
+@pytest.mark.asyncio
+async def test_loan_mapper_can_save_loan(session):
     borrower = Borrower(
         name="John Doe",
         email="john@example.com",
         credit_score=700,
     )
     session.add(borrower)
-    session.commit()
+    await session.commit()
 
     loan = Loan(
         borrower=borrower,
@@ -59,20 +64,22 @@ def test_loan_mapper_can_save_loan(session):
         # id=loan_id
     )
     session.add(loan)
-    session.commit()
+    await session.commit()
 
     # Verify using raw SQL
-    rows = list(
-        session.execute(text("SELECT amount, purpose, term_months, status FROM loans"))
+    rows = await session.execute(
+        text("SELECT amount, purpose, term_months, status FROM loans")
     )
-    amount, purpose, term_months, status = rows[0]
+
+    amount, purpose, term_months, status = rows.first()
     assert amount == Decimal("1000.00")
     assert purpose == "Home improvement"
     assert term_months == 12
     assert status == "ACTIVE"
 
-    # Verify using ORM
-    saved_loan = session.query(Loan).first()
+    # Verify using ORM with modern async syntax
+    result = await session.execute(select(Loan))  # <- select the Loan class
+    saved_loan = result.scalar_one_or_none()
     assert saved_loan.amount == Decimal("1000.00")
     assert saved_loan.purpose == "Home improvement"
     assert saved_loan.term_months == 12
@@ -80,9 +87,11 @@ def test_loan_mapper_can_save_loan(session):
     assert saved_loan.borrower.name == "John Doe"
 
 
-def test_investment_mapper_can_save_investment(session):
+@pytest.mark.asyncio
+async def test_investment_mapper_can_save_investment(session):
     borrower = Borrower(name="John Doe", email="john@example.com", credit_score=700)
     session.add(borrower)
+    await session.commit()
 
     loan = Loan(
         borrower=borrower,
@@ -91,18 +100,21 @@ def test_investment_mapper_can_save_investment(session):
         term_months=12,
     )
     session.add(loan)
+    await session.commit()
 
     investor = Investor(
         name="Jane Smith", email="jane@example.com", available_funds=Decimal("5000.00")
     )
     session.add(investor)
-    session.commit()
+    await session.commit()
 
     investment = Investment(investor=investor, loan=loan, amount=Decimal("500.00"))
     session.add(investment)
-    session.commit()
+    await session.commit()
 
-    saved_investment = session.query(Investment).first()
+    # Using modern async syntax
+    result = await session.execute(select(Investment))
+    saved_investment = result.scalar_one_or_none()
     assert saved_investment.amount == Decimal("500.00")
     assert saved_investment.status == InvestmentStatus.PENDING_APPROVAL
     assert saved_investment.investor.name == "Jane Smith"

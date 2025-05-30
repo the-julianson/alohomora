@@ -53,7 +53,7 @@ class SqlAlchemyLoanRepository:
             term_months=loan.term_months,
             status=loan.status.value,
         )
-        self.session.execute(stmt)
+        await self.session.execute(stmt)
 
     async def get(self, loan_id: UUID) -> Loan | None:
         stmt = select(Loan).where(Loan.id == loan_id)

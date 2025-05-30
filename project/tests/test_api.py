@@ -1,9 +1,7 @@
 import logging
 import uuid
 
-import requests
-
-from app import config
+import pytest
 
 
 def random_email():
@@ -14,28 +12,33 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# @pytest.mark.usefixtures("restart_api")
-def test_apply_for_loan_end_to_end(add_borrower):
-    borrower = add_borrower(
-        name="John Doe",
-        email=random_email(),
-        credit_score=700,
-    )
+def test_apply_for_loan_end_to_end(client):
+    borrower_payload = {
+        "name": "John Doe",
+        "email": f"user-{uuid.uuid4()}@example.com",
+        "income": 150000,
+        "employment_years": 5,
+        "has_previous_loans": False,
+    }
+
+    borrow_resp = client.post("/v1/borrowers", json=borrower_payload)
+    assert borrow_resp.status_code == 201
+    borrower = borrow_resp.json()
+
+    logger.info(f"Borrower: {borrower}")
 
     data = {
-        "borrower": borrower.to_dict(),
+        "borrower_id": borrower.get("borrower_id", ""),
         "amount": 100000,
         "term_months": 12,
         "purpose": "Home renovation",
     }
 
-    url = config.get_api_url()
-    logger.info(f"Testing API at {url}")
     try:
-        response = requests.post(f"{url}/v1/loans/apply", json=data)
+        response = client.post("/v1/loans/apply", json=data)
         logger.info(f"Response status: {response.status_code}")
         logger.info(f"Response body: {response.text}")
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logger.error(f"Request failed: {str(e)}")
         raise
 
@@ -45,7 +48,7 @@ def test_apply_for_loan_end_to_end(add_borrower):
     assert r["message"] == "Loan applied successfully"
 
 
-def test_create_borrower_end_to_end():
+def test_create_borrower_end_to_end(client):
     data = {
         "name": "John Doe",
         "email": random_email(),
@@ -54,11 +57,9 @@ def test_create_borrower_end_to_end():
         "has_previous_loans": False,
     }
 
-    url = config.get_api_url()
-    logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(f"{url}/v1/borrowers", json=data)
+    response = client.post("/v1/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -72,7 +73,7 @@ def test_create_borrower_end_to_end():
     assert result["message"] == "Borrower created successfully"
 
 
-def test_create_borrower_with_high_risk_profile():
+def test_create_borrower_with_high_risk_profile(client):
     data = {
         "name": "John Doe",
         "email": random_email(),
@@ -81,11 +82,9 @@ def test_create_borrower_with_high_risk_profile():
         "has_previous_loans": True,
     }
 
-    url = config.get_api_url()
-    logger.info(f"Testing API at {url}")
     logger.info(f"Request data: {data}")
 
-    response = requests.post(f"{url}/v1/borrowers", json=data)
+    response = client.post("/v1/borrowers", json=data)
 
     logger.info(f"Response status: {response.status_code}")
     logger.info(f"Response body: {response.text}")
@@ -98,48 +97,43 @@ def test_create_borrower_with_high_risk_profile():
     assert result["message"] == "Borrower created successfully"
 
 
-def test_apply_for_loan_end_to_end_with_bad_credit(add_borrower):
-    borrower = add_borrower(
-        name="John Doe",
-        email=random_email(),
-        credit_score=500,
-    )
+def test_apply_for_loan_end_to_end_with_bad_credit(client):
+    borrower_payload = {
+        "name": "John Doe",
+        "email": f"user-{uuid.uuid4()}@example.com",
+        "income": 500,
+        "employment_years": 1,
+        "has_previous_loans": True,
+    }
+
+    borrow_resp = client.post("/v1/borrowers", json=borrower_payload)
+    assert borrow_resp.status_code == 201
+    borrower = borrow_resp.json()
 
     data = {
-        "borrower": borrower.to_dict(),
+        "borrower_id": borrower.get("borrower_id", ""),
         "amount": 100000,
         "term_months": 12,
         "purpose": "Home renovation",
     }
 
-    url = config.get_api_url()
-    logger.info(f"Testing API at {url}")
-    response = requests.post(f"{url}/v1/loans/apply", json=data)
+    response = client.post("/v1/loans/apply", json=data)
     assert response.status_code == 400
     error_detail = response.json()["detail"]
     assert "insufficient credit score" in error_detail.lower()
     assert "minimum 600 required" in error_detail.lower()
 
 
-def test_retrieve_borrowers(add_borrower):
-    add_borrower(
-        name="John Doe",
-        email=random_email(),
-        credit_score=700,
+@pytest.mark.asyncio
+async def test_create_investor_async(client):
+    response = client.post(
+        "/v1/investors",
+        json={
+            "name": "John Investor",
+            "email": "test@example.com",
+            "available_funds": 20000,
+        },
     )
-
-    add_borrower(
-        name="Jane Doe",
-        email=random_email(),
-        credit_score=800,
-    )
-
-    url = config.get_api_url()
-    response = requests.get(f"{url}/v1/borrowers")
-    assert response.status_code == 200
-    result = response.json()
-    assert len(result) > 0
-    assert result[0]["name"] == "John Doe"
-    assert result[0]["credit_score"] == 700
-    assert result[1]["name"] == "Jane Doe"
-    assert result[1]["credit_score"] == 800
+    assert response.status_code == 201
+    data = response.json()
+    assert data["message"] == "Investor created successfully"

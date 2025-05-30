@@ -81,7 +81,7 @@ async def get_borrowers(
     return [borrower.to_dict() for borrower in borrowers]
 
 
-@router.post("/investors")
+@router.post("/investors", status_code=201)
 async def create_investor_async(
     payload: InvestorCreateDTO, session: AsyncSession = Depends(get_async_db_session)
 ):

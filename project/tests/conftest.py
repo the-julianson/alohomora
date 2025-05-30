@@ -15,6 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import clear_mappers
+from starlette.testclient import TestClient
 
 from app import config
 from app.config import Settings, get_settings
@@ -177,3 +178,16 @@ async def wait_for_postgres_to_come_up(engine):
         except OperationalError:
             await asyncio.sleep(0.5)
     pytest.fail("Postgres never came up")
+
+
+@pytest.fixture(scope="module")
+def client():
+    # build exactly the same way you do in production
+    app = create_application()
+    # override your settings to point at web_test
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        testing=1,
+        database_url=os.environ["DATABASE_TEST_URL"],
+    )
+    with TestClient(app) as tc:
+        yield tc

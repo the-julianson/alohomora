@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 from uuid import UUID, uuid4
 
 
@@ -64,7 +63,7 @@ class Loan:
     term_months: int
     id: UUID = field(default_factory=lambda: str(uuid4()))
     status: LoanStatus = LoanStatus.ACTIVE
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     def can_accept_investment(self, amount: Decimal) -> bool:
         return self.status == LoanStatus.ACTIVE and amount == self.amount
@@ -106,7 +105,7 @@ class Investment:
     loan: Loan
     amount: Decimal
     status: InvestmentStatus = InvestmentStatus.PENDING_APPROVAL
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
     repayments: list["Repayment"] = field(default_factory=list)
     id: UUID = field(default_factory=lambda: str(uuid4()))
 

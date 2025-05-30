@@ -4,8 +4,7 @@
 import logging
 
 from fastapi import FastAPI, Request
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import get_db_url
 from .orm import metadata
@@ -14,18 +13,23 @@ from .orm import metadata
 log = logging.getLogger("uvicorn")
 
 
-def init_db(app: FastAPI) -> None:
+async def init_db(app: FastAPI) -> None:
     db_url = get_db_url()
-    log.info(f"Creating engine with URL: {db_url}")
-    engine = create_engine(db_url)
-    metadata.create_all(engine)
-    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    log.info(f"Creating async engine with URL: {db_url}")
+    engine = create_async_engine(db_url)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
+    # metadata.create_all(engine)
+    async_db_session = async_sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
     # Add session to app state
-    app.state.db_session = session_local
+    app.state.async_db_session = async_db_session
 
 
-def get_db_session(request: Request) -> Session:
-    session_maker = request.app.state.db_session
+async def get_async_db_session(request: Request) -> AsyncSession:
+    session_maker = request.app.state.async_db_session
     session = session_maker()
     try:
         yield session

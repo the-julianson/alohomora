@@ -3,11 +3,15 @@
 import logging
 
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.helper import calculate_credit_score
 from app.models import Borrower, InsufficientCreditScoreError, Loan, LoanStatus
-from app.repository import SqlAlchemyBorrowerRepository, SqlAlchemyLoanRepository
+from app.repository import (
+    SqlAlchemyBorrowerRepository,
+    SqlAlchemyInvestorRepository,
+    SqlAlchemyLoanRepository,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -29,20 +33,26 @@ class CreateBorrowerDTO(BaseModel):
 
 
 class LoanApplicationDTO(BaseModel):
-    borrower: BorrowerDTO
+    borrower_id: str
     amount: int
     term_months: int
     purpose: str
+
+
+class InvestorCreateDTO(BaseModel):
+    name: str
+    email: str
+    available_funds: int
 
 
 class LoanApplicationError(Exception):
     pass
 
 
-def create_borrower(
+async def create_borrower(
     prospect_borrower: CreateBorrowerDTO,
     borrower_repo: SqlAlchemyBorrowerRepository,
-    session: Session,
+    session: AsyncSession,
 ) -> tuple[str, int]:
     """
     Create a new borrower with calculated credit score.
@@ -60,13 +70,13 @@ def create_borrower(
         email=prospect_borrower.email,
         credit_score=credit_score,
     )
-    borrower_repo.add(borrower)
-    session.commit()
+    await borrower_repo.add(borrower)
+    await session.commit()
     return str(borrower.id), credit_score
 
 
-def apply_for_loan(
-    loan_object: Loan, loan_repo: SqlAlchemyLoanRepository, session: Session
+async def apply_for_loan(
+    loan_object: Loan, loan_repo: SqlAlchemyLoanRepository, session: AsyncSession
 ) -> str:
     """
     Apply for a new loan with the following rules:
@@ -82,7 +92,7 @@ def apply_for_loan(
         (minimum 600 required)""")
 
     # Get all loan counts for the borrower
-    loan_counts = loan_repo.get_loan_counts_by_status(loan_object.borrower.id)
+    loan_counts = await loan_repo.get_loan_counts_by_status(loan_object.borrower.id)
 
     # Check for defaulted loans
     if loan_counts.get(LoanStatus.DEFAULTED, 0) > 0:
@@ -104,12 +114,21 @@ def apply_for_loan(
         Borrower has maximum allowed pending approval loans""")
 
     # If we get here, the loan is allowed
-    loan_repo.add(loan_object)
-    session.commit()
+    await loan_repo.add(loan_object)
+    await session.commit()
     return loan_object.id
 
 
-def get_borrowers(
-    borrower_repo: SqlAlchemyBorrowerRepository, session: Session
+async def get_borrowers(
+    borrower_repo: SqlAlchemyBorrowerRepository, session: AsyncSession
 ) -> list[Borrower]:
-    return borrower_repo.list()
+    return await borrower_repo.list()
+
+
+async def create_investor(
+    investor: InvestorCreateDTO,
+    investor_repo: SqlAlchemyInvestorRepository,
+    session: AsyncSession,
+) -> None:
+    await investor_repo.add(investor)
+    await session.commit()

@@ -32,7 +32,9 @@ def get_api_url():
 def sanitize_db_url(db_url: str) -> str:
     sanitized_db_url = db_url
     if sanitized_db_url.startswith("postgres://"):
-        sanitized_db_url = sanitized_db_url.replace("postgres://", "postgresql://", 1)
+        sanitized_db_url = sanitized_db_url.replace(
+            "postgres://", "postgresql+asyncpg://", 1
+        )
     return sanitized_db_url
 
 

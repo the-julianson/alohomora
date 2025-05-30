@@ -1,48 +1,50 @@
-from typing import Dict, List, Optional, Protocol
+from typing import Protocol
 from uuid import UUID
 
 from sqlalchemy import func, insert, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Borrower, Investment, Investor, Loan, LoanStatus
-from app.orm import investments, loans
+from app.orm import borrowers, investments, investors, loans
 
 
 class LoanRepository(Protocol):
-    def add(self, loan: Loan) -> None: ...
+    async def add(self, loan: Loan) -> None: ...
 
-    def get(self, loan_id: UUID) -> Optional[Loan]: ...
+    async def get(self, loan_id: UUID) -> Loan | None: ...
 
-    def list(self) -> List[Loan]: ...
+    async def list(self) -> list[Loan]: ...
 
-    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]: ...
+    async def get_loan_counts_by_status(
+        self, borrower_id: UUID
+    ) -> dict[LoanStatus, int]: ...
 
 
 class BorrowerRepository(Protocol):
-    def add(self, borrower: Borrower) -> None: ...
+    async def add(self, borrower: Borrower) -> None: ...
 
-    def get(self, borrower_id: UUID) -> Optional[Borrower]: ...
+    async def get(self, borrower_id: UUID) -> Borrower | None: ...
 
-    def list(self) -> List[Loan]: ...
+    async def list(self) -> list[Loan]: ...
 
 
 class InvestorRepository(Protocol):
-    def add(self, investor: Investor) -> None: ...
+    async def add(self, investor: Investor) -> None: ...
 
-    def get(self, investor_id: UUID) -> Optional[Investor]: ...
+    async def get(self, investor_id: UUID) -> Investor | None: ...
 
 
 class InvestmentRepository(Protocol):
-    def add(self, investment: Investment) -> None: ...
+    async def add(self, investment: Investment) -> None: ...
 
-    def get(self, investment_id: UUID) -> Optional[Investment]: ...
+    async def get(self, investment_id: UUID) -> Investment | None: ...
 
 
 class SqlAlchemyLoanRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add(self, loan: Loan) -> None:
+    async def add(self, loan: Loan) -> None:
         stmt = insert(loans).values(
             id=loan.id,
             borrower_id=loan.borrower.id,
@@ -51,16 +53,18 @@ class SqlAlchemyLoanRepository:
             term_months=loan.term_months,
             status=loan.status.value,
         )
-        self.session.execute(stmt)
+        await self.session.execute(stmt)
 
-    def get(self, loan_id: UUID) -> Optional[Loan]:
-        return self.session.query(Loan).filter_by(id=loan_id).one_or_none()
+    async def get(self, loan_id: UUID) -> Loan | None:
+        stmt = select(Loan).where(Loan.id == loan_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def list(
+    async def list(
         self,
-        borrower_id: Optional[UUID] = None,
-        status: Optional[LoanStatus] = None,
-    ) -> List[Loan]:
+        borrower_id: UUID | None = None,
+        status: LoanStatus | None = None,
+    ) -> list[Loan]:
         """
         List loans with optional filters.
         Used to check borrower's loan history and status.
@@ -73,7 +77,9 @@ class SqlAlchemyLoanRepository:
             query = query.where(Loan.status == status)
         return self.session.execute(query).scalars().all()
 
-    def get_loan_counts_by_status(self, borrower_id: UUID) -> Dict[LoanStatus, int]:
+    async def get_loan_counts_by_status(
+        self, borrower_id: UUID
+    ) -> dict[LoanStatus, int]:
         """
         Get counts of loans by status for a borrower in a single query.
         Returns a dictionary mapping status to count.
@@ -83,41 +89,61 @@ class SqlAlchemyLoanRepository:
             .where(Loan.borrower_id == borrower_id)
             .group_by(Loan.status)
         )
-        result = self.session.execute(query).all()
+        result = await self.session.execute(query)
+        result = result.all()
         # Convert result to dictionary, defaulting to 0 for missing statuses
         return dict(result)
 
 
 class SqlAlchemyBorrowerRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add(self, borrower: Borrower) -> None:
-        self.session.add(borrower)
+    async def add(self, borrower: Borrower) -> None:
+        stmt = insert(borrowers).values(
+            id=borrower.id,
+            name=borrower.name,
+            email=borrower.email,
+            credit_score=borrower.credit_score,
+        )
+        await self.session.execute(stmt)
 
-    def get(self, borrower_id: UUID) -> Optional[Borrower]:
-        return self.session.query(Borrower).filter_by(id=borrower_id).one_or_none()
+    async def get(self, borrower_id: UUID) -> Borrower | None:
+        stmt = select(Borrower).where(Borrower.id == borrower_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def list(self) -> List[Borrower]:
-        return self.session.query(Borrower).all()
+    async def list(self) -> list[Borrower]:
+        stmt = select(Borrower)
+        result = await self.session.execute(stmt)
+        existing = result.scalars().all()
+        return existing
 
 
 class SqlAlchemyInvestorRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add(self, investor: Investor) -> None:
-        self.session.add(investor)
+    async def add(self, investor: Investor) -> None:
+        stmt = insert(investors).values(
+            id=investor.id,
+            name=investor.name,
+            email=investor.email,
+            available_funds=investor.available_funds,
+        )
+        await self.session.execute(stmt)
 
-    def get(self, investor_id: UUID) -> Optional[Investor]:
-        return self.session.query(Investor).filter_by(id=investor_id).one_or_none()
+    async def get(self, investor_id: UUID) -> Investor | None:
+        stmt = select(Investor).where(Investor.id == investor_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
 
 class SqlAlchemyInvestmentRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def add(self, investment: Investment) -> None:
+    async def add(self, investment: Investment) -> None:
         stmt = insert(investments).values(
             id=investment.id,
             investor_id=investment.investor.id,
@@ -125,7 +151,9 @@ class SqlAlchemyInvestmentRepository:
             amount=investment.amount,
             status=investment.status.value,
         )
-        self.session.execute(stmt)
+        await self.session.execute(stmt)
 
-    def get(self, investment_id: UUID) -> Optional[Investment]:
-        return self.session.query(Investment).filter_by(id=investment_id).one_or_none()
+    async def get(self, investment_id: UUID) -> Investment | None:
+        stmt = select(Investment).where(Investment.id == investment_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()

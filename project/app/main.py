@@ -21,7 +21,11 @@ def create_application() -> FastAPI:
     application = FastAPI()
 
     logging.info("Initializing database...")
-    init_db(application)
+
+    @application.on_event("startup")
+    async def on_startup():
+        logging.info("Initializing async DB…")
+        await init_db(application)
 
     application.include_router(ping.router)
     application.include_router(loans.router)

@@ -30,7 +30,7 @@ test-e2e: build
 
 # Run linter
 lint:
-	docker-compose run --rm web ruff . --check
+	docker-compose run --rm web ruff check . --fix 
 
 # Access database shell
 db-shell:

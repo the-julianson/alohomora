@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 
 class LoanStatus(str, Enum):
@@ -41,7 +41,7 @@ class Borrower:
     name: str
     email: str
     credit_score: int
-    id: UUID = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def can_create_loan(self) -> bool:
         return self.credit_score >= 600
@@ -61,7 +61,7 @@ class Loan:
     amount: Decimal
     purpose: str
     term_months: int
-    id: UUID = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))
     status: LoanStatus = LoanStatus.ACTIVE
     created_at: datetime | None = None
 
@@ -83,7 +83,7 @@ class Investor:
     name: str
     email: str
     available_funds: Decimal
-    id: UUID = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def can_invest(self, amount: Decimal) -> bool:
         return self.available_funds >= amount
@@ -107,7 +107,7 @@ class Investment:
     status: InvestmentStatus = InvestmentStatus.PENDING_APPROVAL
     created_at: datetime | None = None
     repayments: list["Repayment"] = field(default_factory=list)
-    id: UUID = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def validate_amount(self) -> None:
         if self.amount != self.loan.amount:
@@ -139,7 +139,7 @@ class Repayment:
     investment: Investment
     amount: Decimal
     paid_at: datetime = datetime.now()
-    id: UUID = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: str(uuid4()))
 
     def validate_amount(self) -> None:
         if self.amount > self.investment.remaining_amount:

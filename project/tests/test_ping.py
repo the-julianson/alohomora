@@ -1,6 +1,8 @@
 # project/tests/test_ping.py
+import pytest
 
 
+@pytest.mark.asyncio
 async def test_ping(async_client):
     response = await async_client.get("/v1/ping")
     assert response.status_code == 200
@@ -11,6 +13,7 @@ async def test_ping(async_client):
     assert "web_test" in response_json["database_url"]
 
 
+@pytest.mark.asyncio
 async def test_version(async_client):
     response = await async_client.get("/v1/version")
     assert response.status_code == 200

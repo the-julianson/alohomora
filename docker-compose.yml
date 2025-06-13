@@ -27,7 +27,7 @@ services:
       - 8004:8000
     environment:
       - ENVIRONMENT=dev
-      - TESTING=0
+      - TESTING=False
       - DATABASE_URL=postgres://postgres:postgres@web-db:5432/web_dev
       - DATABASE_TEST_URL=postgres://postgres:postgres@web-db:5432/web_test
     depends_on:

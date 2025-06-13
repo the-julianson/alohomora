@@ -2,6 +2,7 @@
 
 
 import logging
+from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -28,7 +29,7 @@ async def init_db(app: FastAPI) -> None:
     app.state.async_db_session = async_db_session
 
 
-async def get_async_db_session(request: Request) -> AsyncSession:
+async def get_async_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
     session_maker = request.app.state.async_db_session
     session = session_maker()
     try:

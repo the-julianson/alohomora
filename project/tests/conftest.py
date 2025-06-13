@@ -6,11 +6,13 @@ import logging
 import os
 import time
 import uuid
+from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
+from pydantic import AnyUrl
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -30,21 +32,22 @@ logger = logging.getLogger(__name__)
 
 # Regular fixtures (non-async)
 def get_settings_override():
-    return Settings(testing=1, database_url=os.environ.get("DATABASE_TEST_URL"))
+    return Settings(
+        testing=bool(1), database_url=AnyUrl(os.environ["DATABASE_TEST_URL"]))
 
 
 @pytest_asyncio.fixture(scope="module")
 async def app():
     app = create_application()
     app.dependency_overrides[get_settings] = lambda: Settings(
-        testing=1, database_url=os.environ["DATABASE_TEST_URL"]
+        testing=bool(1), database_url=AnyUrl(os.environ["DATABASE_TEST_URL"])
     )
     return app
 
 
 # Async fixtures
 @pytest_asyncio.fixture(scope="module")
-async def async_client(app):
+async def async_client(app) -> AsyncGenerator[AsyncClient, None]:
     await app.router.startup()
     transport = ASGITransport(app=app)
     async with AsyncClient(base_url="http://test", transport=transport) as ac:
@@ -71,14 +74,6 @@ async def session(in_memory_db):
     async with async_session_maker() as session:
         yield session
     clear_mappers()
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a single shared asyncio event loop for all async tests and fixtures.."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session")
@@ -186,8 +181,8 @@ def client():
     app = create_application()
     # override your settings to point at web_test
     app.dependency_overrides[get_settings] = lambda: Settings(
-        testing=1,
-        database_url=os.environ["DATABASE_TEST_URL"],
+        testing=bool(1),
+        database_url=AnyUrl(os.environ["DATABASE_TEST_URL"]),
     )
     with TestClient(app) as tc:
         yield tc

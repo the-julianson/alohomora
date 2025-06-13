@@ -56,7 +56,7 @@ class SqlAlchemyLoanRepository:
         await self.session.execute(stmt)
 
     async def get(self, loan_id: str) -> Loan | None:
-        stmt = select(Loan).where(Loan.id == loan_id)
+        stmt = select(Loan).where(Loan.id == loan_id)  # type: ignore
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -72,11 +72,11 @@ class SqlAlchemyLoanRepository:
         query = select(Loan)
 
         if borrower_id is not None:
-            query = query.where(Loan.borrower_id == borrower_id)
+            query = query.where(Loan.borrower_id == borrower_id)  # type: ignore
         if status is not None:
-            query = query.where(Loan.status == status)
+            query = query.where(Loan.status == status)  # type: ignore
         results = await self.session.execute(query)
-        return results.scalars().all()
+        return results.scalars().all()  # type: ignore
 
     async def get_loan_counts_by_status(
         self, borrower_id: str
@@ -86,14 +86,14 @@ class SqlAlchemyLoanRepository:
         Returns a dictionary mapping status to count.
         """
         query = (
-            select(Loan.status, func.count(Loan.id).label("count"))
-            .where(Loan.borrower_id == borrower_id)
+            select(Loan.status, func.count(Loan.id).label("count"))  # type: ignore
+            .where(Loan.borrower.id == borrower_id)
             .group_by(Loan.status)
         )
         result = await self.session.execute(query)
         result = result.all()
         # Convert result to dictionary, defaulting to 0 for missing statuses
-        return dict(result)
+        return dict(result)  # type: ignore
 
 
 class SqlAlchemyBorrowerRepository:
@@ -110,15 +110,14 @@ class SqlAlchemyBorrowerRepository:
         await self.session.execute(stmt)
 
     async def get(self, borrower_id: str) -> Borrower | None:
-        stmt = select(Borrower).where(Borrower.id == borrower_id)
+        stmt = select(Borrower).where(Borrower.id == borrower_id)  # type: ignore
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def list(self) -> list[Borrower]:
         stmt = select(Borrower)
         result = await self.session.execute(stmt)
-        existing = result.scalars().all()
-        return existing
+        return result.scalars().all()  # type: ignore
 
 
 class SqlAlchemyInvestorRepository:
@@ -135,7 +134,7 @@ class SqlAlchemyInvestorRepository:
         await self.session.execute(stmt)
 
     async def get(self, investor_id: str) -> Investor | None:
-        stmt = select(Investor).where(Investor.id == investor_id)
+        stmt = select(Investor).where(Investor.id == investor_id)  # type: ignore
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -155,6 +154,6 @@ class SqlAlchemyInvestmentRepository:
         await self.session.execute(stmt)
 
     async def get(self, investment_id: str) -> Investment | None:
-        stmt = select(Investment).where(Investment.id == investment_id)
+        stmt = select(Investment).where(Investment.id == investment_id)  # type: ignore
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()

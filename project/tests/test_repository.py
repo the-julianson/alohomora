@@ -63,6 +63,7 @@ async def test_repository_can_save_an_investment(session):
     await session.commit()
 
     investor_from_db = await investor_repo.get(investor_id=investor.id)
+    assert investor_from_db is not None
     await session.commit()
 
     assert investor_from_db.id == investor.id
@@ -89,6 +90,7 @@ async def test_repository_can_save_an_investment(session):
     await repo_loan.add(loan)
     await session.commit()
     loan_from_db = await repo_loan.get(loan_id=loan.id)
+    assert loan_from_db is not None
     assert loan_from_db.borrower.id == borrower.id
     assert loan_from_db.purpose == loan.purpose
     assert loan_from_db.amount == loan.amount
@@ -101,6 +103,8 @@ async def test_repository_can_save_an_investment(session):
     # Verify the investment is saved correctly
 
     investment_from_db = await investment_repo.get(investment_id=investment.id)
+    if investment_from_db is None:
+        raise ValueError("Investment not found")
     assert investment_from_db.investor.id == investor.id
     assert investment_from_db.loan.id == loan.id
     assert investment_from_db.amount == investment.amount

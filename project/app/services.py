@@ -6,7 +6,13 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.helper import calculate_credit_score
-from app.models import Borrower, InsufficientCreditScoreError, Loan, LoanStatus
+from app.models import (
+    Borrower,
+    InsufficientCreditScoreError,
+    Investor,
+    Loan,
+    LoanStatus,
+)
 from app.repository import (
     SqlAlchemyBorrowerRepository,
     SqlAlchemyInvestorRepository,
@@ -126,9 +132,10 @@ async def get_borrowers(
 
 
 async def create_investor(
-    investor: InvestorCreateDTO,
+    investor: Investor,
     investor_repo: SqlAlchemyInvestorRepository,
     session: AsyncSession,
 ) -> None:
+    logger.info("Starting investor creation")
     await investor_repo.add(investor)
     await session.commit()

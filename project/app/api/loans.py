@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,7 +54,7 @@ async def apply(
     loan_repo = repository.SqlAlchemyLoanRepository(session)
     loan_object = models.Loan(
         borrower=borrower,
-        amount=payload.amount,
+        amount=Decimal(payload.amount),
         term_months=payload.term_months,
         purpose=payload.purpose,
     )
@@ -90,7 +91,7 @@ async def create_investor_async(
     investor = models.Investor(
         name=payload.name,
         email=payload.email,
-        available_funds=payload.available_funds,
+        available_funds=Decimal(payload.available_funds),
     )
 
     try:

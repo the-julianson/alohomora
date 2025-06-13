@@ -44,8 +44,8 @@ def test_apply_for_loan_end_to_end(client):
 
     assert response.status_code == 201
     r = response.json()
-    assert r["loan_id"] is not None
-    assert r["message"] == "Loan applied successfully"
+    assert r["loan_id"] is not None  # type: ignore
+    assert r["message"] == "Loan applied successfully"  # type: ignore
 
 
 def test_create_borrower_end_to_end(client):
@@ -69,8 +69,8 @@ def test_create_borrower_end_to_end(client):
     logger.info(f"Result: {result}")
     assert "borrower_id" in result
     assert "credit_score" in result
-    assert result["credit_score"] == 700
-    assert result["message"] == "Borrower created successfully"
+    assert result["credit_score"] == 700  # type: ignore
+    assert result["message"] == "Borrower created successfully"  # type: ignore
 
 
 def test_create_borrower_with_high_risk_profile(client):
@@ -93,8 +93,8 @@ def test_create_borrower_with_high_risk_profile(client):
     result = response.json()
     assert "borrower_id" in result
     assert "credit_score" in result
-    assert result["credit_score"] == 475
-    assert result["message"] == "Borrower created successfully"
+    assert result["credit_score"] == 475  # type: ignore
+    assert result["message"] == "Borrower created successfully"  # type: ignore
 
 
 def test_apply_for_loan_end_to_end_with_bad_credit(client):
@@ -119,7 +119,7 @@ def test_apply_for_loan_end_to_end_with_bad_credit(client):
 
     response = client.post("/v1/loans/apply", json=data)
     assert response.status_code == 400
-    error_detail = response.json()["detail"]
+    error_detail = response.json()["detail"]  # type: ignore
     assert "insufficient credit score" in error_detail.lower()
     assert "minimum 600 required" in error_detail.lower()
 
@@ -136,4 +136,4 @@ async def test_create_investor_async(client):
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["message"] == "Investor created successfully"
+    assert data["message"] == "Investor created successfully"  # type: ignore

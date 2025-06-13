@@ -11,7 +11,7 @@ from app.orm import borrowers, investments, investors, loans
 class LoanRepository(Protocol):
     async def add(self, loan: Loan) -> None: ...
 
-    async def get(self, loan_id: UUID) -> Loan | None: ...
+    async def get(self, loan_id: str) -> Loan | None: ...
 
     async def list(self) -> list[Loan]: ...
 
@@ -23,7 +23,7 @@ class LoanRepository(Protocol):
 class BorrowerRepository(Protocol):
     async def add(self, borrower: Borrower) -> None: ...
 
-    async def get(self, borrower_id: UUID) -> Borrower | None: ...
+    async def get(self, borrower_id: str) -> Borrower | None: ...
 
     async def list(self) -> list[Loan]: ...
 
@@ -31,13 +31,13 @@ class BorrowerRepository(Protocol):
 class InvestorRepository(Protocol):
     async def add(self, investor: Investor) -> None: ...
 
-    async def get(self, investor_id: UUID) -> Investor | None: ...
+    async def get(self, investor_id: str) -> Investor | None: ...
 
 
 class InvestmentRepository(Protocol):
     async def add(self, investment: Investment) -> None: ...
 
-    async def get(self, investment_id: UUID) -> Investment | None: ...
+    async def get(self, investment_id: str) -> Investment | None: ...
 
 
 class SqlAlchemyLoanRepository:
@@ -55,14 +55,14 @@ class SqlAlchemyLoanRepository:
         )
         await self.session.execute(stmt)
 
-    async def get(self, loan_id: UUID) -> Loan | None:
+    async def get(self, loan_id: str) -> Loan | None:
         stmt = select(Loan).where(Loan.id == loan_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def list(
         self,
-        borrower_id: UUID | None = None,
+        borrower_id: str | None = None,
         status: LoanStatus | None = None,
     ) -> list[Loan]:
         """
@@ -75,10 +75,11 @@ class SqlAlchemyLoanRepository:
             query = query.where(Loan.borrower_id == borrower_id)
         if status is not None:
             query = query.where(Loan.status == status)
-        return self.session.execute(query).scalars().all()
+        results = await self.session.execute(query)
+        return results.scalars().all()
 
     async def get_loan_counts_by_status(
-        self, borrower_id: UUID
+        self, borrower_id: str
     ) -> dict[LoanStatus, int]:
         """
         Get counts of loans by status for a borrower in a single query.
@@ -108,7 +109,7 @@ class SqlAlchemyBorrowerRepository:
         )
         await self.session.execute(stmt)
 
-    async def get(self, borrower_id: UUID) -> Borrower | None:
+    async def get(self, borrower_id: str) -> Borrower | None:
         stmt = select(Borrower).where(Borrower.id == borrower_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -133,7 +134,7 @@ class SqlAlchemyInvestorRepository:
         )
         await self.session.execute(stmt)
 
-    async def get(self, investor_id: UUID) -> Investor | None:
+    async def get(self, investor_id: str) -> Investor | None:
         stmt = select(Investor).where(Investor.id == investor_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -153,7 +154,7 @@ class SqlAlchemyInvestmentRepository:
         )
         await self.session.execute(stmt)
 
-    async def get(self, investment_id: UUID) -> Investment | None:
+    async def get(self, investment_id: str) -> Investment | None:
         stmt = select(Investment).where(Investment.id == investment_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
